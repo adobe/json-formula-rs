@@ -103,6 +103,11 @@ impl JsonFormula {
         &self.debug
     }
 
+    /// Drains and returns all accumulated debug messages, clearing the buffer.
+    pub fn take_debug(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.debug)
+    }
+
     /// Registers a custom function that evaluates the given expression body.
     /// The function accepts zero or one argument. When called with no argument,
     /// the body is evaluated with the current context (`data`); when called
