@@ -68,3 +68,36 @@ textarea[readonly] {
 textarea.error {
   color: red;
 }
+
+/* ── CodeMirror editors ─────────────────────────────────────── */
+
+/* Wrapper takes the flex slot the textarea used to occupy */
+.editor-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Prevent the hidden CM textarea from participating in flex layout */
+.editor-wrap textarea {
+  display: none;
+}
+
+/* CM editor fills the wrapper */
+.editor-wrap .CodeMirror {
+  height: 100%;
+  font-family: monospace;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+}
+
+/* Focus ring matches existing textarea:focus-visible style */
+.editor-wrap .CodeMirror-focused {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+/* Error state: red text on the result editor */
+.editor-wrap.error .CodeMirror {
+  color: red;
+}
