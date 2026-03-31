@@ -1,0 +1,70 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: monospace;
+  background: #fff;
+  color: #000;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.columns {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+label {
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+textarea {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  padding: 6px;
+  resize: vertical;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+textarea[readonly] {
+  background: #fafafa;
+  resize: none;
+}
+
+textarea.error {
+  color: red;
+}
