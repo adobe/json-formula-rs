@@ -18,11 +18,14 @@ Two targeted improvements to the Tauri testbed GUI:
 
 **File:** `testbed/ui/main.js`
 
-Remove `'Tab'` from the `onKeyDown` trigger condition. Only `Enter` fires evaluation. Tab will move browser focus naturally through the four fields in DOM order: Input JSON → Expression → Result → Debug Info.
+Remove `'Tab'` from the `onKeyDown` trigger condition. Only `Enter` fires evaluation. Tab moves browser focus naturally through the four fields in DOM order: Input JSON → Expression → Result → Debug Info.
 
 **Before:**
 ```js
+// Enter and Tab both trigger evaluation. Tab's default (focus-next) is intentionally
+// suppressed so the key acts as "evaluate" rather than leaving the field.
 if (event.key === 'Enter' || event.key === 'Tab') {
+  event.preventDefault();
 ```
 
 **After:**
@@ -30,7 +33,7 @@ if (event.key === 'Enter' || event.key === 'Tab') {
 if (event.key === 'Enter') {
 ```
 
-Also remove the comment that referenced Tab's suppressed default behavior.
+Remove `event.preventDefault()` as well — with only `Enter` matched, the default action for Enter (newline in textarea) is still suppressed but Tab no longer needs special handling.
 
 ---
 
@@ -40,11 +43,11 @@ Also remove the comment that referenced Tab's suppressed default behavior.
 
 Download into `testbed/ui/vendor/` (create directory):
 
-| File | Source |
-|------|--------|
-| `codemirror.min.js` | CodeMirror 5.65.16 core |
-| `codemirror.min.css` | CodeMirror 5.65.16 core CSS |
-| `javascript.min.js` | CodeMirror 5.65.16 JavaScript/JSON mode |
+| File | Download URL |
+|------|-------------|
+| `codemirror.min.js` | `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js` |
+| `codemirror.min.css` | `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css` |
+| `javascript.min.js` | `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js` |
 
 These files are loaded via `<script>` and `<link>` tags — no npm, no build step.
 
@@ -93,13 +96,20 @@ Add rules for the CodeMirror editors:
 .editor-wrap.error .CodeMirror {
   color: red;
 }
+
+/* Hide the original textarea that CodeMirror wraps — CM sets display:none
+   but being explicit also prevents the textarea { flex: 1 } rule from
+   contributing to layout calculations inside .editor-wrap. */
+.editor-wrap textarea {
+  display: none;
+}
 ```
 
-Remove the existing `textarea:focus-visible` rule that applied to the JSON input and result fields — those are now handled by `.CodeMirror-focused`. The rule remains in effect for Expression and Debug textareas.
+The existing `textarea:focus-visible` rule stays in place unchanged — after CodeMirror wraps the two textareas, that rule will only apply to the Expression and Debug fields (the remaining visible textareas), which is the correct behaviour.
 
 ### main.js
 
-**Initialization** (at top of script, after DOM references):
+**Initialization** runs synchronously at top-level script load, after the DOM reference declarations and before any event handlers fire. This guarantees `jsonEditor` and `resultEditor` are always defined when `showError` or `evaluate` is called.
 
 ```js
 const jsonEditor = CodeMirror.fromTextArea(jsonInput, {
@@ -112,9 +122,11 @@ const resultEditor = CodeMirror.fromTextArea(resultArea, {
   mode: { name: 'javascript', json: true },
   lineNumbers: false,
   lineWrapping: true,
-  readOnly: true,
+  readOnly: 'nocursor',
 });
 ```
+
+`readOnly: 'nocursor'` prevents CodeMirror from placing a text cursor in the result panel, which is appropriate for a display-only field.
 
 **`showError` / `clearError`:** Toggle `.error` on the result editor's wrapper element and switch mode between plain text (for error messages) and JSON (for results):
 
@@ -129,17 +141,30 @@ function clearError() {
   resultEditor.getWrapperElement().classList.remove('error');
   resultEditor.setOption('mode', { name: 'javascript', json: true });
 }
+// clearError intentionally does not call setValue('') — the evaluate call site
+// immediately calls resultEditor.setValue(result.result ?? '') afterward.
 ```
 
-**`evaluate` function:** Replace `.value` / `.value =` references:
+**`evaluate` function:** Replace all textarea `.value` reads/writes:
 
-| Old | New |
-|-----|-----|
-| `jsonInput.value.trim()` | `jsonEditor.getValue().trim()` |
-| `resultArea.value = result.result ?? ''` | `resultEditor.setValue(result.result ?? '')` |
-| `resultArea.style.color = ''` | *(handled by `clearError`)* |
+| Location | Old | New |
+|----------|-----|-----|
+| Read JSON input | `jsonInput.value.trim()` | `jsonEditor.getValue().trim()` |
+| Clear result (empty-JSON guard) | `resultArea.value = ''` | `resultEditor.setValue('')` |
+| Set result on success | `resultArea.value = result.result ?? ''` | `resultEditor.setValue(result.result ?? '')` |
 
-The `debugArea.value` reference is unchanged — Debug Info remains a plain textarea.
+`debugArea.value` is unchanged — Debug Info remains a plain textarea.
+
+**`keydown` listener migration:** After `fromTextArea`, the original `jsonInput` element is hidden by CodeMirror and no longer receives focus events. Migrate the keydown listener from the textarea to the editor instance:
+
+```js
+// Before:
+jsonInput.addEventListener('keydown', onKeyDown);
+
+// After:
+jsonEditor.on('keydown', (_cm, event) => onKeyDown(event));
+expressionInput.addEventListener('keydown', onKeyDown);  // unchanged
+```
 
 ---
 
