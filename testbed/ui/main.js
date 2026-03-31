@@ -31,6 +31,11 @@ async function evaluate() {
     return;
   }
 
+  if (!window.__TAURI__) {
+    showError('Not running inside Tauri — window.__TAURI__ is unavailable');
+    return;
+  }
+
   try {
     const result = await window.__TAURI__.invoke('evaluate', { expression, json });
     debugArea.value = result.debug.join('\n');
@@ -46,6 +51,8 @@ async function evaluate() {
 }
 
 function onKeyDown(event) {
+  // Enter and Tab both trigger evaluation. Tab's default (focus-next) is intentionally
+  // suppressed so the key acts as "evaluate" rather than leaving the field.
   if (event.key === 'Enter' || event.key === 'Tab') {
     event.preventDefault();
     evaluate();
