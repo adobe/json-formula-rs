@@ -18,7 +18,7 @@ Two targeted improvements to the Tauri testbed GUI:
 
 **File:** `testbed/ui/main.js`
 
-Remove `'Tab'` from the `onKeyDown` trigger condition. Only `Enter` fires evaluation. Tab moves browser focus naturally through the four fields in DOM order: Input JSON → Expression → Result → Debug Info.
+Tab fires evaluation AND moves focus to the next field. Enter fires evaluation and stays in the field. The key difference: `event.preventDefault()` is only called for `Enter` (to suppress newline insertion), not for `Tab` (so the browser still advances focus after evaluation fires).
 
 **Before:**
 ```js
@@ -26,14 +26,19 @@ Remove `'Tab'` from the `onKeyDown` trigger condition. Only `Enter` fires evalua
 // suppressed so the key acts as "evaluate" rather than leaving the field.
 if (event.key === 'Enter' || event.key === 'Tab') {
   event.preventDefault();
+  evaluate();
+}
 ```
 
 **After:**
 ```js
 if (event.key === 'Enter') {
+  event.preventDefault();
+  evaluate();
+} else if (event.key === 'Tab') {
+  evaluate(); // fires evaluation; default Tab behavior (focus-next) is NOT suppressed
+}
 ```
-
-Remove `event.preventDefault()` as well — with only `Enter` matched, the default action for Enter (newline in textarea) is still suppressed but Tab no longer needs special handling.
 
 ---
 
