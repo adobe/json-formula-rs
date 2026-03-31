@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, Debug)]
 struct EvaluateResult {
     result: Option<String>,
     debug: Vec<String>,
@@ -20,9 +20,10 @@ fn run_evaluate(expression: String, json: String) -> EvaluateResult {
     };
     let mut jf = json_formula_rs::JsonFormula::new();
     let result = jf.evaluate(&expression, &parsed, None, None, false);
-    let debug = jf.debug().to_vec(); // collected unconditionally
+    let debug = jf.debug().to_vec(); // collected unconditionally, even on error
     match result {
         Ok(v) => EvaluateResult {
+            // to_string_pretty for a bare integer (e.g. 42) produces "42" with no whitespace
             result: Some(serde_json::to_string_pretty(&v).unwrap_or_default()),
             debug,
             error: None,
@@ -35,6 +36,9 @@ fn run_evaluate(expression: String, json: String) -> EvaluateResult {
     }
 }
 
+// `evaluate` and `main` are gated out of test builds because tauri::generate_context!()
+// reads icon assets at compile time that are not present in this testbed.
+// run_evaluate (the logic under test) remains available to the test module.
 #[cfg(not(test))]
 #[tauri::command]
 fn evaluate(expression: String, json: String) -> EvaluateResult {
@@ -48,9 +52,6 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
-#[cfg(test)]
-fn main() {}
 
 #[cfg(test)]
 mod tests {
@@ -73,11 +74,12 @@ mod tests {
 
     #[test]
     fn evaluate_collects_debug_messages() {
-        // Accessing a missing field generates debug messages in the library.
+        // Accessing a missing field causes the library to emit debug messages.
         let result = run_evaluate(
             "missing_field".to_string(),
             r#"{"label": "x"}"#.to_string(),
         );
+        assert!(result.error.is_none(), "missing field should not be an error");
         assert!(!result.debug.is_empty(), "expected debug messages for missing field");
     }
 }
