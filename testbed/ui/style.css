@@ -48,7 +48,7 @@ label {
 textarea {
   flex: 1;
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 12pt;
   border: 1px solid #ccc;
   padding: 6px;
   resize: vertical;
@@ -88,7 +88,7 @@ textarea.error {
 .editor-wrap .CodeMirror {
   height: 100%;
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 12pt;
   border: 1px solid #ccc;
 }
 
