@@ -3,22 +3,40 @@ const expressionInput = document.getElementById('expression-input');
 const resultArea = document.getElementById('result');
 const debugArea = document.getElementById('debug');
 
+// Initialise CodeMirror editors synchronously so showError/evaluate can always
+// reference jsonEditor and resultEditor safely.
+const jsonEditor = CodeMirror.fromTextArea(jsonInput, {
+  mode: { name: 'javascript', json: true },
+  lineNumbers: false,
+  lineWrapping: true,
+});
+
+const resultEditor = CodeMirror.fromTextArea(resultArea, {
+  mode: { name: 'javascript', json: true },
+  lineNumbers: false,
+  lineWrapping: true,
+  readOnly: 'nocursor',
+});
+
 function showError(message) {
-  resultArea.classList.add('error');
-  resultArea.value = message;
+  resultEditor.getWrapperElement().classList.add('error');
+  resultEditor.setOption('mode', 'text/plain');
+  resultEditor.setValue(message);
 }
 
 function clearError() {
-  resultArea.classList.remove('error');
+  resultEditor.getWrapperElement().classList.remove('error');
+  resultEditor.setOption('mode', { name: 'javascript', json: true });
+  // Does NOT call setValue('') — the evaluate call site sets the result immediately after.
 }
 
 async function evaluate() {
-  const json = jsonInput.value.trim();
+  const json = jsonEditor.getValue().trim();
   const expression = expressionInput.value.trim();
 
   if (!json) {
     clearError();
-    resultArea.value = '';
+    resultEditor.setValue('');
     debugArea.value = '';
     return;
   }
@@ -43,7 +61,7 @@ async function evaluate() {
       showError(result.error);
     } else {
       clearError();
-      resultArea.value = result.result ?? '';
+      resultEditor.setValue(result.result ?? '');
     }
   } catch (e) {
     showError('IPC error: ' + e.message);
@@ -59,5 +77,6 @@ function onKeyDown(event) {
   }
 }
 
-jsonInput.addEventListener('keydown', onKeyDown);
+// jsonInput is hidden by CodeMirror — attach the listener to the editor instance.
+jsonEditor.on('keydown', (_cm, event) => onKeyDown(event));
 expressionInput.addEventListener('keydown', onKeyDown);
