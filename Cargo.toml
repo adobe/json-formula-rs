@@ -1,0 +1,18 @@
+[package]
+name = "json-formula-rs"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+license-file = "LICENSE"
+description = "Native Rust implementation of Adobe json-formula"
+repository = "https://github.com/adobe/json-formula"
+readme = "README.md"
+
+[dependencies]
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114", features = ["preserve_order"] }
+thiserror = "1.0.58"
+regex = "1.10.4"
+chrono = { version = "0.4.38", features = ["clock"] }
+rand = "0.8.5"
+indexmap = "2.2.6"

@@ -1,0 +1,2661 @@
+[
+  {
+    "given": {
+      "foo": -1,
+      "zero": 0,
+      "numbers": [-1, 3, 4, 5],
+      "array": [-1, 3, 4, 5, "a", "100"],
+      "strings": ["a", "b", "c"],
+      "decimals": [1.01, 1.2, -1.5],
+      "str": "Str",
+      "false": false,
+      "empty_list": [],
+      "empty_hash": {},
+      "objects": { "foo": "bar", "bar": "baz" },
+      "null_key": null,
+      "datestr": "2023-11-11T12:34:56.789Z",
+      "extended": "𝒜𝒞𝒟𝒢𝒥",
+      "toNum": {
+        "true": 1,
+        "false": 0,
+        "null": 0,
+        "s11": "11",
+        "n11": 11,
+        "empty": ""
+      }
+    },
+    "cases": [
+      {
+        "expression": "hasProperty(foo, \"bar\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "hasProperty(objects, \"foo\")",
+        "result": true
+      },
+      {
+        "expression": "hasProperty(empty_hash, \"foo\")",
+        "result": false
+      },
+      {
+        "expression": "hasProperty(numbers, 3)",
+        "result": true
+      },
+      {
+        "expression": "hasProperty(numbers, 4)",
+        "result": false
+      },
+      {
+        "expression": "hasProperty(null_key, 4)",
+        "result": false
+      },
+      {
+        "expression": "hasProperty(null_key, \"p\")",
+        "result": false
+      },
+      {
+        "expression": "hasProperty(@, \"null_key\")",
+        "result": true
+      },
+      {
+        "expression": "hasProperty(`false`, \"key\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "hasProperty(42, \"key\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "hasProperty(\"abc\", \"key\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "and(true() true())",
+        "error": "SyntaxError"
+      },
+      {
+        "expression": "and(true(),)",
+        "error": "SyntaxError"
+      },
+      {
+        "expression": "power(2, 4)",
+        "result": 16
+      },
+      {
+        "expression": "map([1, 2, 4], &power(@, 4))",
+        "result": [1, 16, 256]
+      },
+      {
+        "expression": "power(0, -2)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "power(-2, 2.5)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "reduce(numbers, &@.accumulated + @.current)",
+        "result": 11
+      },
+      {
+        "expression": "reduce(strings, &@.accumulated & @.current, \":\")",
+        "result": ":abc"
+      },
+      {
+        "expression": "reduce(numbers, &@.accumulated - @.current, 100)",
+        "result": 89
+      },
+      {
+        "expression": "reduce(numbers, &if(abs(mod(@.current, 2)) == 1, {odd: @.accumulated.odd + 1, even: @.accumulated.even},{odd: @.accumulated.odd, even: @.accumulated.even + 1}), {odd: 0, even: 0})",
+        "result": { "odd": 3, "even": 1 }
+      },
+      {
+        "expression": "reduce(split(\"A2\",\"\"), &value(`{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9,\"A\":10,\"B\":11,\"C\":12,\"D\":13,\"E\":14,\"F\":15}`, @.current) + 16*@.accumulated, 0)",
+        "result": 162
+      },
+      {
+        "expression": "reduce([\"orange\", \"apple\", \"banana\"], &if(@.current == \"apple\", @.index, @.accumulated), -1)",
+        "result": 1
+      },
+      {
+        "expression": "reduce(numbers, &if (@.index+1 == length(@.array),(@.accumulated + @.current)/length(@.array),@.accumulated + @.current), 0)",
+        "result": 2.75
+      },
+      {
+        "expression": "[{age: 10, name: \"Joe\"},{age: 20, name: \"John\"}].reduce(@, &max(accumulated, current.age),@[0].age)",
+        "result": 20
+      },
+      {
+        "expression": "abs(foo)",
+        "result": 1
+      },
+      {
+        "expression": "abs(str)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "abs(array[1])",
+        "result": 3
+      },
+      {
+        "expression": "abs([-1, 3, [-4, 5]])",
+        "result": [1, 3, [4, 5]]
+      },
+      {
+        "expression": "abs(`false`)",
+        "result": 0
+      },
+      {
+        "expression": "abs(`-24`)",
+        "result": 24
+      },
+      {
+        "expression": "abs(`1`, `2`)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "abs()",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "unknown_function(`1`, `2`)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "avg(numbers)",
+        "result": 2.75
+      },
+      {
+        "expression": "avg(array)",
+        "result": 2.75
+      },
+      {
+        "expression": "avg('abc')",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avg(foo)",
+        "result": -1,
+        "was": "TypeError"
+      },
+      {
+        "expression": "avg(@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avg(strings)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "avg(`[]`)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "avg(`[2,1,\"b\"]`)",
+        "result": 1.5
+      },
+      {
+        "expression": "avg([1, 2, [3, 4, `[5]`]])",
+        "result": 3
+      },
+      {
+        "expression": "avg(`null`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(numbers)",
+        "result": 2.75
+      },
+      {
+        "expression": "avgA(array)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA('abc')",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(foo)",
+        "result": -1,
+        "was": "TypeError"
+      },
+      {
+        "expression": "avgA(@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(strings)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(`[]`)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "avgA(`[2,1,\"b\"]`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(`null`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA([1,[2,[3,[4,5]],6]])",
+        "result": 3.5
+      },
+      {
+        "expression": "ceil(`1.2`)",
+        "result": 2
+      },
+      {
+        "expression": "ceil(decimals[0])",
+        "result": 2
+      },
+      {
+        "expression": "ceil(decimals[1])",
+        "result": 2
+      },
+      {
+        "expression": "ceil(decimals[2])",
+        "result": -1
+      },
+      {
+        "expression": "ceil(\"string\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "contains(\"abc\", \"a\")",
+        "result": true
+      },
+      {
+        "expression": "contains(\"abc\", \"d\")",
+        "result": false
+      },
+      {
+        "expression": "contains(`false`, \"d\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "contains(strings, \"a\")",
+        "result": true
+      },
+      {
+        "expression": "contains(decimals, `1.2`)",
+        "result": true
+      },
+      {
+        "expression": "contains(decimals, `false`)",
+        "result": false
+      },
+      {
+        "expression": "endsWith(str, \"r\")",
+        "result": true
+      },
+      {
+        "expression": "endsWith(str, \"tr\")",
+        "result": true
+      },
+      {
+        "expression": "endsWith(str, \"Str\")",
+        "result": true
+      },
+      {
+        "expression": "endsWith(str, \"SStr\")",
+        "result": false
+      },
+      {
+        "expression": "endsWith(str, \"foo\")",
+        "result": false
+      },
+      {
+        "expression": "endsWith(str, `0`)",
+        "result": false
+      },
+      {
+        "expression": "floor(`1.2`)",
+        "result": 1
+      },
+      {
+        "expression": "floor(\"string\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "floor(decimals[0])",
+        "result": 1
+      },
+      {
+        "expression": "floor(foo)",
+        "result": -1
+      },
+      {
+        "expression": "floor(str)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "length(\"abc\")",
+        "result": 3
+      },
+      {
+        "expression": "length(\"✓foo\")",
+        "result": 4
+      },
+      {
+        "expression": "length(\"\")",
+        "result": 0
+      },
+      {
+        "expression": "length(@)",
+        "result": 15
+      },
+      {
+        "expression": "length(strings[0])",
+        "result": 1
+      },
+      {
+        "expression": "length(str)",
+        "result": 3
+      },
+      {
+        "expression": "length(array)",
+        "result": 6
+      },
+      {
+        "expression": "length(objects)",
+        "result": 2
+      },
+      {
+        "expression": "length(`false`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "length(foo)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "length(strings[0])",
+        "result": 1
+      },
+      {
+        "expression": "length(extended)",
+        "result": 5
+      },
+      {
+        "expression": "codePoint(extended)",
+        "result": 119964
+      },
+      {
+        "expression": "split(extended, \"\")",
+        "result": ["𝒜", "𝒞", "𝒟", "𝒢", "𝒥"]
+      },
+      {
+        "expression": "contains(extended, \"𝒟\")",
+        "result": true
+      },
+      {
+        "expression": "contains(extended, \"\ud835\")",
+        "result": false
+      },
+      {
+        "expression": "contains(extended, \"\")",
+        "result": true
+      },
+      {
+        "expression": "contains(\"\", \"\")",
+        "result": true
+      },
+      {
+        "expression": "contains(\"123\", 1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "contains([1, {a: 1}, 3], {a: 1})",
+        "result": true
+      },
+      {
+        "expression": "contains([1, `[{\"a\": 10}]`, 3], [{a: 10}])",
+        "result": true
+      },
+      {
+        "expression": "contains([1, {a: 1}, 3], {a: 2})",
+        "result": false
+      },
+      {
+        "expression": "endsWith(extended, \"\uDCA5\")",
+        "result": false
+      },
+      {
+        "expression": "find(\"\ud835\", extended) & \":\" & find(\"𝒜\", extended)",
+        "result": ":0"
+      },
+      {
+        "expression": "left(extended, 3)",
+        "result": "𝒜𝒞𝒟"
+      },
+      {
+        "expression": "right(extended, 3)",
+        "result": "𝒟𝒢𝒥"
+      },
+      {
+        "expression": "mid(extended, 1, 2)",
+        "result": "𝒞𝒟"
+      },
+      {
+        "expression": "replace(extended, 1, 2, \"cd\")",
+        "result": "𝒜cd𝒢𝒥"
+      },
+      {
+        "expression": "reverse(extended)",
+        "result": "𝒥𝒢𝒟𝒞𝒜"
+      },
+      {
+        "expression": "startsWith(extended, \"\ud835\")",
+        "result": false
+      },
+      {
+        "expression": "substitute(extended, \"\ud835\", \"A\", 1)",
+        "result": "𝒜𝒞𝒟𝒢𝒥"
+      },
+      {
+        "expression": "substitute(\"AAAA\", \"\", \"A\")",
+        "result": "AAAA"
+      },
+      {
+        "expression": "max(numbers)",
+        "result": 5
+      },
+      {
+        "expression": "max(decimals)",
+        "result": 1.2
+      },
+      {
+        "expression": "max(strings)",
+        "result": 0
+      },
+      {
+        "expression": "max(abc)",
+        "result": 0
+      },
+      {
+        "expression": "max(array)",
+        "result": 5
+      },
+      {
+        "expression": "max(decimals)",
+        "result": 1.2
+      },
+      {
+        "expression": "max(empty_list)",
+        "result": 0
+      },
+      {
+        "expression": "max(strings, [\"A\", \"B\", \"C\"])",
+        "result": 0
+      },
+      {
+        "expression": "max([\"D\", \"E\", \"F\"], [\"A\", \"B\", \"C\"])",
+        "result": 0
+      },
+      {
+        "expression": "max(empty_list, \"a\")",
+        "result": 0
+      },
+      {
+        "expression": "max(empty_list, decimals, 0)",
+        "result": 1.2
+      },
+      {
+        "expression": "[`null`, empty_list, decimals, 0, [null(), 2]][]|[?notNull(@)]|map(@, &toNumber(@)).max(@)",
+        "result": 2
+      },
+      {
+        "expression": "max([1, toNumber(\"2\")])",
+        "result": 2
+      },
+      {
+        "expression": "max([-4, \"foo\"])",
+        "result": -4
+      },
+      {
+        "expression": "max([null(), null()])",
+        "result": 0
+      },
+      {
+        "expression": "max(2,\"3\")",
+        "result": 2
+      },
+      {
+        "expression": "max([2,[4,5]])",
+        "result": 5
+      },
+      {
+        "expression": "maxA(numbers)",
+        "result": 5
+      },
+      {
+        "expression": "maxA(decimals)",
+        "result": 1.2
+      },
+      {
+        "expression": "maxA(strings)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA(abc)",
+        "result": 0
+      },
+      {
+        "expression": "maxA(array)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA(empty_list)",
+        "result": 0
+      },
+      {
+        "expression": "maxA(strings, [\"A\", \"B\", \"C\"])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA(empty_list, decimals, 0)",
+        "result": 1.2
+      },
+      {
+        "expression": "maxA([1, toNumber(\"2\")])",
+        "result": 2
+      },
+      {
+        "expression": "maxA([-4, \"foo\"])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA([null(), null()])",
+        "result": 0
+      },
+      {
+        "expression": "maxA(2,\"3\")",
+        "result": 3
+      },
+      {
+        "expression": "maxA([2,[4,5]])",
+        "result": 5
+      },
+      {
+        "expression": "min(2,\"3\")",
+        "result": 2
+      },
+      {
+        "expression": "merge(`{}`)",
+        "result": {}
+      },
+      {
+        "expression": "merge(`{}`, `{}`)",
+        "result": {}
+      },
+      {
+        "expression": "merge(`{\"a\": 1}`, `{\"b\": 2}`)",
+        "result": { "a": 1, "b": 2 }
+      },
+      {
+        "expression": "merge(`{\"a\": 1}`, `{\"a\": 2}`)",
+        "result": { "a": 2 }
+      },
+      {
+        "expression": "merge(`{\"a\": 1, \"b\": 2}`, `{\"a\": 2, \"c\": 3}`, `{\"d\": 4}`)",
+        "result": { "a": 2, "b": 2, "c": 3, "d": 4 }
+      },
+      {
+        "expression": "merge(`{\"a\": 1}`, `{\"a\": 2}`, \"82\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "merge([1, 2, 3], [4, 5, 6])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "min(numbers)",
+        "result": -1
+      },
+      {
+        "expression": "min(decimals)",
+        "result": -1.5
+      },
+      {
+        "expression": "min(abc)",
+        "result": 0
+      },
+      {
+        "expression": "min(array)",
+        "result": -1
+      },
+      {
+        "expression": "min(empty_list)",
+        "result": 0
+      },
+      {
+        "expression": "min([4, \"foo\"])",
+        "result": 4
+      },
+      {
+        "expression": "min(strings)",
+        "result": 0
+      },
+      {
+        "expression": "min(strings, [\"A\", \"B\", \"C\"])",
+        "result": 0
+      },
+      {
+        "expression": "min([\"D\", \"E\", \"F\"], [\"A\", \"B\", \"C\"])",
+        "result": 0
+      },
+      {
+        "expression": "min(empty_list, \"a\")",
+        "result": 0
+      },
+      {
+        "expression": "min(empty_list, decimals, 0)",
+        "result": -1.5
+      },
+      {
+        "expression": "min(empty_list, decimals, 0, [-2, 0])",
+        "result": -2
+      },
+      {
+        "expression": "min(`null`, 23, \"21\")",
+        "result": 23
+      },
+      {
+        "expression": "min([null(), null()])",
+        "result": 0
+      },
+      {
+        "expression": "minA(numbers)",
+        "result": -1
+      },
+      {
+        "expression": "minA(decimals)",
+        "result": -1.5
+      },
+      {
+        "expression": "minA(abc)",
+        "result": 0
+      },
+      {
+        "expression": "minA(array)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "minA(empty_list)",
+        "result": 0
+      },
+      {
+        "expression": "minA([4, \"foo\"])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "minA(decimals)",
+        "result": -1.5
+      },
+      {
+        "expression": "minA(strings)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "minA(strings, [\"A\", \"B\", \"C\"])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "minA(empty_list, decimals, 0)",
+        "result": -1.5
+      },
+      {
+        "expression": "minA(empty_list, decimals, 0, [-2, 0])",
+        "result": -2
+      },
+      {
+        "expression": "minA(`null`, 23, \"21\")",
+        "result": 21
+      },
+      {
+        "expression": "minA([null(), null()])",
+        "result": 0
+      },
+      {
+        "expression": "type(\"abc\")",
+        "result": "string"
+      },
+      {
+        "expression": "type(`1.0`)",
+        "result": "number"
+      },
+      {
+        "expression": "type(`2`)",
+        "result": "number"
+      },
+      {
+        "expression": "type(`true`)",
+        "result": "boolean"
+      },
+      {
+        "expression": "type(`false`)",
+        "result": "boolean"
+      },
+      {
+        "expression": "type(`null`)",
+        "result": "null"
+      },
+      {
+        "expression": "type(`[0]`)",
+        "result": "array"
+      },
+      {
+        "expression": "type(`{\"a\": \"b\"}`)",
+        "result": "object"
+      },
+      {
+        "expression": "type(@)",
+        "result": "object"
+      },
+      {
+        "expression": "sort(keys(objects))",
+        "result": ["bar", "foo"]
+      },
+      {
+        "expression": "sort([1,2,[3,4]])",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "sort([1,2,{a:[3,4]}])",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "keys(foo)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "keys(strings)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "keys(`false`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sort(values(objects))",
+        "result": ["bar", "baz"]
+      },
+      {
+        "expression": "keys(empty_hash)",
+        "result": []
+      },
+      {
+        "expression": "keys(`null`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "values(foo)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "values(null())",
+        "error": "TypeError"
+      },
+      {
+        "expression": "join(strings, \", \")",
+        "result": "a, b, c"
+      },
+      {
+        "expression": "join(`[\"a\", \"b\"]`, \",\")",
+        "result": "a,b"
+      },
+      {
+        "expression": "join(`[\"a\", 0]`, \",\")",
+        "result": "a,0",
+        "was": "TypeError"
+      },
+      {
+        "expression": "join(str, \", \")",
+        "result": "Str",
+        "was": "TypeError"
+      },
+      {
+        "expression": "join(strings, \"|\")",
+        "result": "a|b|c"
+      },
+      {
+        "expression": "join(strings, `2`)",
+        "result": "a2b2c",
+        "was": "TypeError"
+      },
+      {
+        "expression": "join(decimals, \"|\")",
+        "result": "1.01|1.2|-1.5",
+        "was": "TypeError"
+      },
+      {
+        "expression": "join(decimals[].toString(@), \"|\")",
+        "result": "1.01|1.2|-1.5"
+      },
+      {
+        "expression": "join(empty_list, \"|\")",
+        "result": ""
+      },
+      {
+        "expression": "{a:1}.[@, entries(@)].join(@, \" == \")",
+        "result": "{\"a\":1} == [[\"a\",1]]"
+      },
+      {
+        "expression": "reverse(numbers)",
+        "result": [5, 4, 3, -1]
+      },
+      {
+        "expression": "reverse(array)",
+        "result": ["100", "a", 5, 4, 3, -1]
+      },
+      {
+        "expression": "reverse(`[]`)",
+        "result": []
+      },
+      {
+        "expression": "reverse(\"\")",
+        "result": ""
+      },
+      {
+        "expression": "reverse(\"hello world\")",
+        "result": "dlrow olleh"
+      },
+      {
+        "expression": "startsWith(str, \"S\")",
+        "result": true
+      },
+      {
+        "expression": "startsWith(str, \"St\")",
+        "result": true
+      },
+      {
+        "expression": "startsWith(str, \"Str\")",
+        "result": true
+      },
+      {
+        "expression": "startsWith(str, \"String\")",
+        "result": false
+      },
+      {
+        "expression": "startsWith(\"ALABAMA\", \"A\")",
+        "result": true
+      },
+      {
+        "expression": "startsWith(str, `0`)",
+        "result": false
+      },
+      {
+        "expression": "sum(numbers)",
+        "result": 11
+      },
+      {
+        "expression": "sum(decimals)",
+        "result": 0.71
+      },
+      {
+        "expression": "sum(array)",
+        "result": 11
+      },
+      {
+        "expression": "sum(toNumber(array))",
+        "result": 111
+      },
+      {
+        "expression": "toNumber(array, 16)",
+        "result": [-1, 3, 4, 5, 10, 256]
+      },
+      {
+        "expression": "sum(toNumber(array, 16))",
+        "result": 277
+      },
+      {
+        "expression": "sum(array[].toNumber(@))",
+        "result": 111
+      },
+      {
+        "expression": "sum(`[]`)",
+        "result": 0
+      },
+      {
+        "expression": "toArray(\"foo\")",
+        "result": ["foo"]
+      },
+      {
+        "expression": "toArray(`0`)",
+        "result": [0]
+      },
+      {
+        "expression": "toArray(objects)",
+        "result": [{ "foo": "bar", "bar": "baz" }]
+      },
+      {
+        "expression": "toArray(`[1, 2, 3]`)",
+        "result": [1, 2, 3]
+      },
+      {
+        "expression": "toArray(false)",
+        "result": [false]
+      },
+      {
+        "expression": "toString(\"foo\")",
+        "result": "foo"
+      },
+      {
+        "expression": "toString(`1.2`)",
+        "result": "1.2"
+      },
+      {
+        "expression": "toString(`[0, 1]`)",
+        "result": "[0,1]"
+      },
+      {
+        "expression": "toString(numbers)",
+        "result": "[-1,3,4,5]"
+      },
+      {
+        "expression": "toString(numbers,1)",
+        "result": "[\n -1,\n 3,\n 4,\n 5\n]"
+      },
+      {
+        "expression": "toString(objects)",
+        "result": "{\"foo\":\"bar\",\"bar\":\"baz\"}"
+      },
+      {
+        "expression": "toString(objects,2)",
+        "result": "{\n  \"foo\": \"bar\",\n  \"bar\": \"baz\"\n}"
+      },
+      {
+        "expression": "toString(null())",
+        "result": "null"
+      },
+      {
+        "expression": "toDate(datestr)",
+        "result": 19672.524268391204
+      },
+      {
+        "expression": "toDate(\"2023-11-11T12:34:56.789\")|day(@) & \":\" & hour(@)",
+        "result": "11:12"
+      },
+      {
+        "expression": "(toDate(\"2023-12-11T20:00:00+0000\")|hour(@)) - (toDate(\"2023-12-11T20:00:00+0300\")|hour(@))",
+        "result": 3
+      },
+      {
+        "expression": "toDate(\"2023-11-12\")|month(@) & \":\" & day(@) & \":\" & hour(@)",
+        "result": "11:12:0"
+      },
+      {
+        "expression": "toDate(\"2023111\")",
+        "result": null
+      },
+      {
+        "expression": "toDate(\"20231111T12:11:10\") | year(@) &\":\"& month(@) &\":\"& day(@) &\":\"& hour(@) &\":\"& minute(@) &\":\"& second(@)",
+        "result": "2023:11:11:12:11:10"
+      },
+      {
+        "expression": "toDate(\"20231111T12345\")",
+        "result": null
+      },
+      {
+        "expression": "toDate(\"abcd\")",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"1.0\")",
+        "result": 1.0
+      },
+      {
+        "expression": "toNumber(\"1.1\")",
+        "result": 1.1
+      },
+      {
+        "expression": "toNumber(\"4\")",
+        "result": 4
+      },
+      {
+        "expression": "toNumber(\"notanumber\")",
+        "result": null
+      },
+      {
+        "expression": "toNumber(toNum.false)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(toNum.true)",
+        "result": 1
+      },
+      {
+        "expression": "toNumber(`false`)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(`true`)",
+        "result": 1
+      },
+      {
+        "expression": "toNumber(`null`)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(toNum.null)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(toNumber(\"a\"))",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(`[0]`)",
+        "result": [0]
+      },
+      {
+        "expression": "toNumber(`{\"foo\": 0}`)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"FF\", 16)",
+        "result": 255
+      },
+      {
+        "expression": "toNumber(\"ff\", 16)",
+        "result": 255
+      },
+      {
+        "expression": "toNumber(\"FF.1\", 16)",
+        "result": 255.0625
+      },
+      {
+        "expression": "toNumber(\"1.1\", 2)",
+        "result": 1.5
+      },
+      {
+        "expression": "toNumber(\"1.2\", 8)",
+        "result": 1.25
+      },
+      {
+        "expression": "toNumber(\"FF.EE.AA\", 16)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(toNum.n11, 16)",
+        "result": 11
+      },
+      {
+        "expression": "toNumber(toNum.s11, 16)",
+        "result": 17
+      },
+      {
+        "expression": "toNumber(toNum.n11, 8)",
+        "result": 11
+      },
+      {
+        "expression": "toNumber(toNum.s11, 8)",
+        "result": 9
+      },
+      {
+        "expression": "toNumber(toNum.n11, 2)",
+        "result": 11
+      },
+      {
+        "expression": "toNumber(toNum.s11, 2)",
+        "result": 3
+      },
+      {
+        "expression": "toNumber(toNum.s11, 12)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "toNumber(toNum.n11, 12)",
+        "result": 11
+      },
+      {
+        "expression": "toNumber(toNum.empty)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(\"AXX\", 16)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"78\", 8)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"112\", 2)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(toNum.empty, 16)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(\"not hex\", 16)",
+        "result": null
+      },
+      {
+        "expression": "toNumber(toNum.null, 16)",
+        "result": 0
+      },
+      {
+        "expression": "toNumber(toNum.true, 16)",
+        "result": 1
+      },
+      {
+        "expression": "toNumber(toNum.n11, 16)",
+        "result": 11
+      },
+      {
+        "expression": "toNumber(\"0x11\")",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"0o11\")",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"0b11\")",
+        "result": null
+      },
+      { "expression": "toNumber(\" 01e01\\n\")", "result": 10},
+      { "expression": "toNumber(\" 011\\n\", 2)", "result": 3},
+      { "expression": "toNumber(\" -011\\n\", 2)", "result": -3},
+      { "expression": "toNumber(\" +011\\n\", 2)", "result": 3},
+      { "expression": "toNumber(\" 011\\n\", 16)", "result": 17},
+      { "expression": "toNumber(\" -011\\n\", 16)", "result": -17},
+      { "expression": "toNumber(\" +011\\n\", 16)", "result": 17},
+      { "expression": "toNumber(\" 011\\n\", 8)", "result": 9},
+      { "expression": "toNumber(\" -011\\n\", 8)", "result": -9},
+      { "expression": "toNumber(\" +011\\n\", 8)", "result": 9},
+      { "expression": "toNumber(\" 070.070 \", 8)", "result": 56.109375},
+      { "expression": "toNumber(\" 0F0.0F0 \", 16)", "result": 240.05859375},
+      {
+        "expression": "'toString'(`1.0`)",
+        "error": "SyntaxError"
+      },
+      {
+        "expression": "sort(numbers)",
+        "result": [-1, 3, 4, 5]
+      },
+      {
+        "expression": "sort([100, 1, 10, 11])",
+        "result": [1, 10, 11, 100]
+      },
+      {
+        "expression": "sort(strings)",
+        "result": ["a", "b", "c"]
+      },
+      {
+        "expression": "sort(decimals)",
+        "result": [-1.5, 1.01, 1.2]
+      },
+      {
+        "expression": "sort(array)",
+        "result": [-1, 3, 4, 5, "100", "a"]
+      },
+      {
+        "expression": "sort(abc)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sort(empty_list)",
+        "result": []
+      },
+      {
+        "expression": "sort(@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "notNull(unknown_key, str)",
+        "result": "Str"
+      },
+      {
+        "expression": "notNull(unknown_key, foo.bar, empty_list, str)",
+        "result": []
+      },
+      {
+        "expression": "notNull(unknown_key, null_key, empty_list, str)",
+        "result": []
+      },
+      {
+        "expression": "notNull(all, expressions, are_null)",
+        "result": null
+      },
+
+      {
+        "expression": "notNull()",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "notNull(\"\", \"A\")",
+        "result": ""
+      },
+      {
+        "expression": "notNull(`false`, \"A\")",
+        "result": false
+      },
+      {
+        "expression": "[not(`[]`), !`[]`, not(`{}`), !`{}`]",
+        "result": [true, true, true, true]
+      },
+      {
+        "description": "function projection on single arg function",
+        "expression": "numbers[].toString(@)",
+        "result": ["-1", "3", "4", "5"]
+      },
+      {
+        "description": "function projection on single arg function",
+        "expression": "array[].toNumber(@)",
+        "result": [-1, 3, 4, 5, null, 100],
+        "was": [-1, 3, 4, 5, 100]
+      }
+    ]
+  },
+  {
+    "given": {
+      "foo": [
+        { "b": "b", "a": "a" },
+        { "c": "c", "b": "b" },
+        { "d": "d", "c": "c" },
+        { "e": "e", "d": "d" },
+        { "f": "f", "e": "e" }
+      ]
+    },
+    "cases": [
+      {
+        "description": "function projection on variadic function",
+        "expression": "foo[].notNull(f, e, d, c, b, a)",
+        "result": ["b", "c", "d", "e", "f"]
+      }
+    ]
+  },
+  {
+    "given": {
+      "people": [
+        {
+          "age": 20,
+          "age_str": "20",
+          "bool": true,
+          "name": "a",
+          "extra": "foo"
+        },
+        {
+          "age": 40,
+          "age_str": "40",
+          "bool": false,
+          "name": "b",
+          "extra": "bar"
+        },
+        { "age": 30, "age_str": "30", "bool": true, "name": "c" },
+        { "age": 50, "age_str": "50", "bool": false, "name": "d" },
+        { "age": 10, "age_str": "10", "bool": true, "name": 3 }
+      ]
+    },
+    "cases": [
+      {
+        "description": "sort by field expression",
+        "expression": "sortBy(people, &age)",
+        "result": [
+          { "age": 10, "age_str": "10", "bool": true, "name": 3 },
+          {
+            "age": 20,
+            "age_str": "20",
+            "bool": true,
+            "name": "a",
+            "extra": "foo"
+          },
+          { "age": 30, "age_str": "30", "bool": true, "name": "c" },
+          {
+            "age": 40,
+            "age_str": "40",
+            "bool": false,
+            "name": "b",
+            "extra": "bar"
+          },
+          { "age": 50, "age_str": "50", "bool": false, "name": "d" }
+        ]
+      },
+      {
+        "expression": "sortBy(people, &age_str)",
+        "result": [
+          { "age": 10, "age_str": "10", "bool": true, "name": 3 },
+          {
+            "age": 20,
+            "age_str": "20",
+            "bool": true,
+            "name": "a",
+            "extra": "foo"
+          },
+          { "age": 30, "age_str": "30", "bool": true, "name": "c" },
+          {
+            "age": 40,
+            "age_str": "40",
+            "bool": false,
+            "name": "b",
+            "extra": "bar"
+          },
+          { "age": 50, "age_str": "50", "bool": false, "name": "d" }
+        ]
+      },
+      {
+        "description": "sort by function expression",
+        "expression": "sortBy(people, &toNumber(age_str))",
+        "result": [
+          { "age": 10, "age_str": "10", "bool": true, "name": 3 },
+          {
+            "age": 20,
+            "age_str": "20",
+            "bool": true,
+            "name": "a",
+            "extra": "foo"
+          },
+          { "age": 30, "age_str": "30", "bool": true, "name": "c" },
+          {
+            "age": 40,
+            "age_str": "40",
+            "bool": false,
+            "name": "b",
+            "extra": "bar"
+          },
+          { "age": 50, "age_str": "50", "bool": false, "name": "d" }
+        ]
+      },
+      {
+        "description": "function projection on sortBy function",
+        "expression": "sortBy(people, &age)[].name",
+        "result": [3, "a", "c", "b", "d"]
+      },
+      {
+        "expression": "sortBy(people, &extra)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sortBy(people, &bool)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sortBy(people, &name)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sortBy(people, name)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sortBy(people, &age)[].extra",
+        "result": [null, "foo", null, "bar", null]
+      },
+      {
+        "expression": "sortBy(`[]`, &age)",
+        "result": []
+      }
+    ]
+  },
+  {
+    "given": {
+      "people": [
+        { "age": 10, "order": "1" },
+        { "age": 10, "order": "2" },
+        { "age": 10, "order": "3" },
+        { "age": 10, "order": "4" },
+        { "age": 10, "order": "5" },
+        { "age": 10, "order": "6" },
+        { "age": 10, "order": "7" },
+        { "age": 10, "order": "8" },
+        { "age": 10, "order": "9" },
+        { "age": 10, "order": "10" },
+        { "age": 10, "order": "11" }
+      ]
+    },
+    "cases": [
+      {
+        "description": "stable sort order",
+        "expression": "sortBy(people, &age)",
+        "result": [
+          { "age": 10, "order": "1" },
+          { "age": 10, "order": "2" },
+          { "age": 10, "order": "3" },
+          { "age": 10, "order": "4" },
+          { "age": 10, "order": "5" },
+          { "age": 10, "order": "6" },
+          { "age": 10, "order": "7" },
+          { "age": 10, "order": "8" },
+          { "age": 10, "order": "9" },
+          { "age": 10, "order": "10" },
+          { "age": 10, "order": "11" }
+        ]
+      }
+    ]
+  },
+  {
+    "given": {
+      "people": [
+        { "a": 10, "b": 1, "c": "z" },
+        { "a": 10, "b": 2, "c": null },
+        { "a": 10, "b": 3 },
+        { "a": 10, "b": 4, "c": "z" },
+        { "a": 10, "b": 5, "c": null },
+        { "a": 10, "b": 6 },
+        { "a": 10, "b": 7, "c": "z" },
+        { "a": 10, "b": 8, "c": null },
+        { "a": 10, "b": 9 }
+      ],
+      "empty": []
+    },
+    "cases": [
+      {
+        "expression": "map(people, &a)",
+        "result": [10, 10, 10, 10, 10, 10, 10, 10, 10]
+      },
+      {
+        "expression": "map(people, &c)",
+        "result": ["z", null, null, "z", null, null, "z", null, null]
+      },
+      {
+        "expression": "map(badkey, &a)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "map(empty, &foo)",
+        "result": []
+      }
+    ]
+  },
+  {
+    "given": {
+      "array": [
+        {
+          "foo": { "bar": "yes1" }
+        },
+        {
+          "foo": { "bar": "yes2" }
+        },
+        {
+          "foo1": { "bar": "no" }
+        }
+      ]
+    },
+    "cases": [
+      {
+        "expression": "map(array, &foo.bar)",
+        "result": ["yes1", "yes2", null]
+      },
+      {
+        "expression": "map(array, &foo1.bar)",
+        "result": [null, null, "no"]
+      },
+      {
+        "expression": "map(array, &foo.bar.baz)",
+        "result": [null, null, null]
+      }
+    ]
+  },
+  {
+    "given": {
+      "array": [
+        [1, 2, 3, [4]],
+        [5, 6, 7, [8, 9]]
+      ]
+    },
+    "cases": [
+      {
+        "expression": "map(array, &[])",
+        "result": [
+          [1, 2, 3, 4],
+          [5, 6, 7, 8, 9]
+        ]
+      }
+    ]
+  },
+  {
+    "given": {},
+    "cases": [
+      {
+        "expression": "acos(0)",
+        "result": 1.5707963267948966
+      },
+      {
+        "expression": "acos([0, [0, 0]])",
+        "result": [1.5707963267948966, [1.5707963267948966, 1.5707963267948966]]
+      },
+      {
+        "expression": "acos(1.01)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "Math.asin(0)",
+        "result": 0
+      },
+      {
+        "expression": "Math.asin(2)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "atan2(20,10)",
+        "result": 1.1071487177940904
+      },
+      {
+        "expression": "cos(1.0471975512)",
+        "result": 0.4999999999970535
+      },
+      {
+        "expression": "fround(2147483650.987)",
+        "result": 2147483648
+      },
+      {
+        "expression": "fround(100.44444444444444444444)",
+        "result": 100.44444274902344
+      },
+      {
+        "expression": "log(10)",
+        "result": 2.302585092994046
+      },
+      {
+        "expression": "log(-10)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "log10(100000)",
+        "result": 5
+      },
+      {
+        "expression": "log10(0)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "sign(5)",
+        "result": 1
+      },
+      {
+        "expression": "sign(-5)",
+        "result": -1
+      },
+      {
+        "expression": "sign(0)",
+        "result": 0
+      },
+      {
+        "expression": "sin(0)",
+        "result": 0
+      },
+      {
+        "expression": "sin(1)",
+        "result": 0.8414709848078965
+      },
+      {
+        "expression": "tan(0)",
+        "result": 0
+      },
+      {
+        "expression": "tan(1)",
+        "result": 1.5574077246549023
+      },
+      {
+        "expression": "abs(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "acos(&0)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "and(&true(), true())",
+        "error": "TypeError"
+      },
+      {
+        "expression": "asin(&0)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avg(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "avgA(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "casefold(&\"abc\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "ceil(&1.2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "codePoint(&\"A\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "contains(&[1,2,3], 2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "cos(&0)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datedif(&now(), now(), \"d\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(&2000, 1, 1, 0, 0, 0) | year(@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 0, 0, 0) | day(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "deepScan(&[1,2,3], 1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "endsWith(&123, 3)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "entries(&{a: 42})",
+        "error": "TypeError"
+      },
+      {
+        "expression": "eomonth(&datetime(2011, 1, 1), 1) | [month(@), day(@)]",
+        "error": "TypeError"
+      },
+      {
+        "expression": "exp(&0)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "find(&3, 123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "floor(&1.2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "fromCodePoint(&65)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "fromEntries(&[[\"a\", 42]])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "fround(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "hasProperty(&{a: 42}, \"a\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 1, 0, 0) | hour(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "if(&true(), 1, 2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "join(&[1,2], \",\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "keys(&{a:42})",
+        "error": "TypeError"
+      },
+      {
+        "expression": "left(&123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "length(&123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "log(&10)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "lower(&\"ABC\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "map(&[1,2,3], &@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "max(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "merge(&{a: 1}, {b: 2})",
+        "error": "TypeError"
+      },
+      {
+        "expression": "mid(&123, 2, 1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 1, 1, 1, 12) | millisecond(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "min(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "minA(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 1, 1, 1, 12) | minute(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "mod(&4,2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 1, 1, 1, 12) | month(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "not(&true())",
+        "error": "TypeError"
+      },
+      {
+        "expression": "notNull(&3)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "or(&true(), true())",
+        "error": "TypeError"
+      },
+      {
+        "expression": "power(&10, 2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "proper(&\"abc\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "reduce(&[1,2,3], &42)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "register(&\"foo\", &42)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "replace(&\"abc\", 1, 1, \"d\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "rept(&\"@\", 3)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "reverse(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "right(&123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "round(&1.2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "search(&\"a?c\", \"acabc\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2000, 1, 1, 1, 1, 1) | second(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sign(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sin(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sort(&[3,2,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sortBy(&[3,2,1], &@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "split(&\"1,2,3\", \",\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sqrt(&4)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "startsWith(&123, 1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "stdev(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "stdevp(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "stdevA(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "stdevpA(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "substitute(&\"abc\", \"b\", \"d\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "sum(&[1,2,3])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "tan(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "time(1, 1, 1) | hour(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "toArray(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "toDate(&\"2023-11-11\")|year(@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "toNumber(&\"12\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "toString(&12)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "trim(&\"  abc  \")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "trunc(&1.2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "type(&123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "unique(&[1,1])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "upper(&123)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "value(&[1,2,3], 2)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "values(&{a: 42})",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | weekday(&1)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | year(&@)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "zip(&[1,2,3], [4,5,6])",
+        "error": "TypeError"
+      }
+    ]
+  },
+  {
+    "given": {
+      "num": 3,
+      "arrayNum": [-3.333, -2.22, -1.1, 0, 1.1, 2.22, 3.333],
+      "arrayInt": [1,2,3,4,5,6,7],
+      "str": "abcdefg",
+      "arrayStr": ["abc", "bcd", "cde", "def", "efg"]
+    },
+    "cases": [
+      {
+        "expression": "abs(arrayNum)",
+        "result": [3.333, 2.22, 1.1, 0, 1.1, 2.22, 3.333]
+      },
+      {
+        "expression": "acos(arrayInt / (arrayInt + 1))",
+        "result": [
+          1.0471975511965979, 0.8410686705679303, 0.7227342478134157,
+          0.6435011087932843, 0.5856855434571508, 0.5410995259571458,
+          0.5053605102841573
+        ]
+      },
+      {
+        "expression": "asin(arrayInt / (arrayInt + 1))",
+        "result": [
+          0.5235987755982989, 0.7297276562269663, 0.848062078981481,
+          0.9272952180016123, 0.9851107833377457, 1.0296968008377507,
+          1.0654358165107394
+        ]
+      },
+      {
+        "expression": "atan2(arrayNum, 10)",
+        "result": [
+          -0.32172055409664824, -0.21845717120535865, -0.10955952677394436, 0,
+          0.10955952677394436, 0.21845717120535865, 0.32172055409664824
+        ]
+      },
+      {
+        "expression": "atan2(arrayNum, arrayInt)",
+        "result": [
+          -1.2793120068559851, -0.837483712611627, -0.3514447940035517, 0,
+          0.2165503049760893, 0.35437991912343786, 0.44438039217805514
+        ]
+      },
+      {
+        "expression": "atan2(1, [1, [2, 3]])",
+        "result": [0.7853981633974483, [0.4636476090008061, 0.3217505543966422]]
+      },
+      {
+        "expression": "ceil([1.1, [2.2, 3.3]])",
+        "result": [2, [3, 4]]
+      },
+      {
+        "expression": "codePoint([\"A\", [\"B\", \"C\"]])",
+        "result": [65, [66, 67]]
+      },
+      {
+        "expression": "now() | datedif([@, [@, @]], [@ + 1, [@ + 2, @ + 3]], \"d\")",
+        "result": [1, [2, 3]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | day([[@, @], [@, @]])",
+        "result": [[8, 8], [8, 8]]
+      },
+      {
+        "expression": "endsWith([\"abc\", [\"def\", \"ghi\"]], \"c\")",
+        "result": [true, [false, false]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | eomonth([[@, @], [@, @]], 1) | month(@) & \"/\" &day(@)",
+        "result": [["4/30", "4/30"], ["4/30", "4/30"]]
+      },
+      {
+        "expression": "exp([1, [2, 3]])",
+        "result": [2.718281828459045, [7.38905609893065, 20.085536923187668]]
+      },
+      {
+        "expression": "find(\"a\", [\"abc\", [\"def\", \"ghi\"]], [0, [1, 2]])",
+        "result": [0, [null, null]]
+      },
+      {
+        "expression": "floor([1.1, [2.2, 3.3]])",
+        "result": [1, [2, 3]]
+      },
+      {
+        "expression": "fround([1.1, [2.2, 3.3]])",
+        "result": [1.100000023841858, [2.200000047683716, 3.299999952316284]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8, 13, 45) | hour([[@, @], [@, @]])",
+        "result": [[13, 13], [13, 13]]
+      },
+      {
+        "expression": "log([1, [2, 3]])",
+        "result": [0, [0.6931471805599453, 1.0986122886681096]]
+      },
+      {
+        "expression": "log10([1, [2, 3]])",
+        "result": [0, [0.3010299956639812, 0.47712125471966244]]
+      },
+      {
+        "expression": "lower([\"ABC\", [\"DEF\", \"GHI\"]])",
+        "result": ["abc", ["def", "ghi"]]
+      },
+      {
+        "expression": "max([1, [2, 3]])",
+        "result": 3
+      },
+      {
+        "expression": "datetime(2024, 3, 8, 13, 45, 30, 500) | millisecond([[@, @], [@, @]])",
+        "result": [[500, 500], [500, 500]]
+      },
+      {
+        "expression": "min([2, [1, 3]])",
+        "result": 1
+      },
+      {
+        "expression": "datetime(2024, 3, 8, 13, 45) | minute([[@, @], [@, @]])",
+        "result": [[45, 45], [45, 45]]
+      },
+      {
+        "expression": "mod([2, [4, 6]], [1, [2, 3]])",
+        "result": [0, [0, 0]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | month([[@, @], [@, @]])",
+        "result": [[3, 3], [3, 3]]
+      },
+      {
+        "expression": "power([2, [3, 4]], [2, [2, 2]])",
+        "result": [4, [9, 16]]
+      },
+      {
+        "expression": "proper([\"abc\", [\"def\", \"ghi\"]])",
+        "result": ["Abc", ["Def", "Ghi"]]
+      },
+      {
+        "expression": "rept([\"a\", [\"b\", \"c\"]], [2, [2, 2]])",
+        "result": ["aa", ["bb", "cc"]]
+      },
+      {
+        "expression": "round([1.5, [2.5, 3.5]])",
+        "result": [2, [3, 4]]
+      },
+      {
+        "expression": "search(\"a\", [\"abc\", [\"def\", \"ghi\"]], [0, [0, 0]])",
+        "result": [[0, "a"], [[], []]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8, 13, 45, 30) | second([[@, @], [@, @]])",
+        "result": [[30, 30], [30, 30]]
+      },
+      {
+        "expression": "sign([1.1, [-2.2, 3.3]])",
+        "result": [1, [-1, 1]]
+      },
+      {
+        "expression": "sin([1, [2, 3]])",
+        "result": [0.8414709848078965, [0.9092974268256817, 0.1411200080598672]]
+      },
+      {
+        "expression": "split([\"a,b\", [\"c,d\", \"e,f\"]], \",\")",
+        "result": [["a", "b"], [["c", "d"], ["e", "f"]]]
+      },
+      {
+        "expression": "sqrt([4, [9, 16]])",
+        "result": [2, [3, 4]]
+      },
+      {
+        "expression": "startsWith([\"abc\", [\"def\", \"ghi\"]], \"a\")",
+        "result": [true, [false, false]]
+      },
+      {
+        "expression": "stdev([1, [2, 3]])",
+        "result": 1
+      },
+      {
+        "expression": "stdevA([1, [2, 3]])",
+        "result": 1
+      },
+      {
+        "expression": "stdevp([1, [2, 3]])",
+        "result": 0.8164965809277263
+      },
+      {
+        "expression": "stdevpA([1, [2, 3]])",
+        "result": 0.8164965809277263
+      },
+      {
+        "expression": "substitute([\"abc\", [\"aab\", \"ghi\"]], \"a\", \"A\", [0, [1, 0]])",
+        "result": ["Abc", ["aAb", "ghi"]]
+      },
+      {
+        "expression": "sum([1, [2, 3]])",
+        "result": 6
+      },
+      {
+        "expression": "tan([1, [2, 3]])",
+        "result": [1.5574077246549023, [-2.185039863261519, -0.1425465430742778]]
+      },
+      {
+        "expression": "trim([\" abc \", [\" def \", \" ghi \"]])",
+        "result": ["abc", ["def", "ghi"]]
+      },
+      {
+        "expression": "trunc([1.5, [2.5, 3.5]])",
+        "result": [1, [2, 3]]
+      },
+      {
+        "expression": "upper([\"abc\", [\"def\", \"ghi\"]])",
+        "result": ["ABC", ["DEF", "GHI"]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | weekday([[@, @], [@, @]], 1)",
+        "result": [[6, 6], [6, 6]]
+      },
+      {
+        "expression": "datetime(2024, 3, 8) | year([[@, @], [@, @]])",
+        "result": [[2024, 2024], [2024, 2024]]
+      },
+      {
+          "expression": "abs([-1, 3, [-4, 5]])",
+         "result": [1, 3, [4, 5]]
+       },
+       {
+         "expression": "avg([1, 2, [3, 4, `[5]`]])",
+         "result": 3
+       },
+       {
+         "expression": "asin([1, [0, 0.19866933079506123]])",
+         "result": [1.5707963267948966, [0, 0.2]]
+        },
+        {
+         "expression": "casefold(arrayStr)",
+         "result": ["abc", "bcd", "cde", "def", "efg"]
+        },
+        {
+          "expression": "ceil(arrayNum)",
+         "result": [-3, -2, -1, 0, 2, 3, 4]
+        },
+        {
+         "expression": "codePoint(arrayStr)",
+         "result": [97, 98, 99, 100, 101]
+        },
+        {
+         "expression": "cos([1, [2, 3]])",
+         "result": [0.5403023058681398, [-0.4161468365471424, -0.9899924966004454]]
+        },
+        {
+         "expression": "cos(arrayNum)",
+         "result": [
+           -0.9817374728267503, -0.6045522710579296, 0.4535961214255773, 1,
+           0.4535961214255773, -0.6045522710579296, -0.9817374728267503
+         ]
+        },
+        {
+         "expression": "now() | datedif([@, [@, @]], [@ + 1, [@ + 2, @ + 3]], \"d\")",
+         "result": [1, [2, 3]]
+        },
+        {
+         "expression": "now() | datedif(@, @ + 1, [\"y\",\"m\",\"d\",\"ym\",\"yd\"])",
+         "result": [0, 0, 1, 0, 1]
+        },
+        {
+         "expression": "datetime(2024, 3, 8) | day([[@, @], [@, @]])",
+         "result": [[8, 8], [8, 8]]
+        },
+        {
+         "expression": "now() | datedif([@, @], [@ + 1, @ + 2], \"d\")",
+         "result": [1, 2]
+        },
+        {
+         "expression": "endsWith([\"abc\", [\"def\", \"ghi\"]], \"c\")",
+         "result": [true, [false, false]]
+        },
+        {
+          "expression": "datetime(2024, 10, 12) | day([@, @ + 1])",
+         "result": [12, 13]
+        },
+        {
+         "expression": "endsWith(arrayStr, arrayStr)",
+         "result": [true, true, true, true, true]
+        },
+        {
+         "expression": "exp([1, [2, 3]])",
+         "result": [2.718281828459045, [7.38905609893065, 20.085536923187668]]
+        },
+        {
+         "expression": "endsWith(arrayStr, \"c\")",
+         "result": [true, false, false, false, false]
+        },
+        {
+         "expression": "find(\"a\", [\"abc\", [\"def\", \"ghi\"]], [0, [1, 2]])",
+         "result": [0, [null, null]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12) | eomonth([@, @, @, @, @, @, @], 1)| [month(@) & day(@)][]",
+         "result": ["1130", "1130", "1130", "1130", "1130", "1130", "1130"]
+        },
+        {
+         "expression": "floor([1.1, [2.2, 3.3]])",
+         "result": [1, [2, 3]]
+       },
+       {
+         "expression": "{d: datetime(2024, 10, 12), n:arrayInt} | eomonth([@.d, @.d, @.d, @.d, @.d, @.d, @.d], @.n) | [month(@) & day(@)][]",
+         "result": ["1130", "1231", "131", "228", "331", "430", "531"]
+        },
+        {
+         "expression": "fround([1.1, [2.2, 3.3]])",
+         "result": [1.100000023841858, [2.200000047683716, 3.299999952316284]]
+        },
+        {
+         "expression": "exp(arrayInt)",
+         "result": [
+           2.718281828459045, 7.38905609893065, 20.085536923187668,
+           54.598150033144236, 148.4131591025766, 403.4287934927351,
+           1096.6331584284585
+         ]
+        },
+        {
+         "expression": "datetime(2024, 3, 8, 13, 45) | hour([[@, @], [@, @]])",
+         "result": [[13, 13], [13, 13]]
+        },
+        {
+         "expression": "find(arrayStr, arrayStr, [0,0,0,0,0,0])",
+         "result": [0, 0, 0, 0, 0, 0]
+        },
+        {
+         "expression": "log([1, [2, 3]])",
+         "result": [0, [0.6931471805599453, 1.0986122886681096]]
+        },
+        {
+         "expression": "find(\"c\", [\"cc\",\"ccc\",\"cccc\",\"ccccc\",\"cccccc\",\"ccccccc\",\"cccccccc\"], arrayInt)",
+         "result": [1, 2, 3, 4, 5, 6, 7]
+        },
+        {
+         "expression": "log10([1, [2, 3]])",
+         "result": [0, [0.3010299956639812, 0.47712125471966244]]
+        },
+        {
+         "expression": "find(arrayStr, arrayStr, 0)",
+         "result": [0, 0, 0, 0, 0]
+        },
+        {
+         "expression": "lower([\"ABC\", [\"DEF\", \"GHI\"]])",
+         "result": ["abc", ["def", "ghi"]]
+        },
+        {
+         "expression": "find(\"c\", \"abcdefg\", arrayInt)",
+         "result": [2, 2, null, null, null, null, null]
+        },
+        {
+         "expression": "max([1, [2, 3]])",
+         "result": 3
+        },
+        {
+         "expression": "floor(arrayNum)",
+         "result": [-4, -3, -2, 0, 1, 2, 3]
+        },
+        {
+         "expression": "datetime(2024, 3, 8, 13, 45, 30, 500) | millisecond([[@, @], [@, @]])",
+         "result": [[500, 500], [500, 500]]
+        },
+        {
+         "expression": "fromCodePoint(64 + arrayInt)",
+         "result": "ABCDEFG"
+        },
+        {
+         "expression": "min([2, [1, 3]])",
+         "result": 1
+        },
+        {
+         "expression": "fround(arrayNum)",
+         "result": [
+           -3.3329999446868896, -2.2200000286102295, -1.100000023841858, 0,
+           1.100000023841858, 2.2200000286102295, 3.3329999446868896
+         ]
+        },
+        {
+         "expression": "datetime(2024, 3, 8, 13, 45) | minute([[@, @], [@, @]])",
+         "result": [[45, 45], [45, 45]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12, 13) | hour([@, @])",
+         "result": [13, 13]
+        },
+        {
+         "expression": "mod([2, [4, 6]], [1, [2, 3]])",
+         "result": [0, [0, 0]]
+        },
+        {
+         "expression": "log(arrayInt)",
+         "result": [
+           0, 0.6931471805599453, 1.0986122886681096, 1.3862943611198906,
+           1.6094379124341003, 1.791759469228055, 1.9459101490553132
+         ]
+        },
+        {
+         "expression": "datetime(2024, 3, 8) | month([[@, @], [@, @]])",
+         "result": [[3, 3], [3, 3]]
+        },
+        {
+         "expression": "log10(arrayInt)",
+         "result": [
+           0, 0.3010299956639812, 0.47712125471966244, 0.6020599913279624,
+           0.6989700043360189, 0.7781512503836436, 0.8450980400142568
+         ]
+        },
+        {
+         "expression": "power([2, [3, 4]], [2, [2, 2]])",
+         "result": [4, [9, 16]]
+        },
+        {
+         "expression": "lower(arrayStr)",
+         "result": ["abc", "bcd", "cde", "def", "efg"]
+        },
+        {
+         "expression": "proper([\"abc\", [\"def\", \"ghi\"]])",
+         "result": ["Abc", ["Def", "Ghi"]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | millisecond([@, @ + 1])",
+         "result": [16, 16]
+        },
+        {
+         "expression": "rept([\"a\", [\"b\", \"c\"]], [2, [2, 2]])",
+         "result": ["aa", ["bb", "cc"]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | minute([@, @ + 1])",
+         "result": [14, 14]
+        },
+        {
+         "expression": "round([1.5, [2.5, 3.5]])",
+         "result": [2, [3, 4]]
+        },
+        {
+         "expression": "mod(arrayInt, 2)",
+         "result": [1, 0, 1, 0, 1, 0, 1]
+        },
+        {
+         "expression": "search(\"a\", [\"abc\", [\"def\", \"ghi\"]], [0, [0, 0]])",
+         "result": [[0, "a"], [[], []]]
+        },
+        {
+         "expression": "mod(arrayInt, arrayInt + 1)",
+         "result": [1, 2, 3, 4, 5, 6, 7]
+        },
+        {
+         "expression": "datetime(2024, 3, 8, 13, 45, 30) | second([[@, @], [@, @]])",
+         "result": [[30, 30], [30, 30]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | month([@, @])",
+         "result": [10, 10]
+        },
+        {
+         "expression": "sign([1.1, [-2.2, 3.3]])",
+         "result": [1, [-1, 1]]
+        },
+        {
+         "expression": "power(arrayInt, arrayInt)",
+         "result": [1, 4, 27, 256, 3125, 46656, 823543]
+        },
+        {
+         "expression": "sin([1, [2, 3]])",
+         "result": [0.8414709848078965, [0.9092974268256817, 0.1411200080598672]]
+        },
+        {
+         "expression": "power(arrayInt, 2)",
+         "result": [1, 4, 9, 16, 25, 36, 49]
+        },
+        {
+         "expression": "split([\"a,b\", [\"c,d\", \"e,f\"]], \",\")",
+         "result": [["a", "b"], [["c", "d"], ["e", "f"]]]
+        },
+        {
+         "expression": "power(2, arrayInt)",
+         "result": [2, 4, 8, 16, 32, 64, 128]
+        },
+        {
+         "expression": "sqrt([4, [9, 16]])",
+         "result": [2, [3, 4]]
+        },
+        {
+         "expression": "proper(arrayStr)",
+         "result": ["Abc", "Bcd", "Cde", "Def", "Efg"]
+        },
+        {
+         "expression": "startsWith([\"abc\", [\"def\", \"ghi\"]], \"a\")",
+         "result": [true, [false, false]]
+        },
+        {
+         "expression": "rept(arrayStr, arrayInt)",
+         "result": [
+           "abc",
+           "bcdbcd",
+           "cdecdecde",
+           "defdefdefdef",
+           "efgefgefgefgefg",
+           "",
+           ""
+         ]
+        },
+        {
+         "expression": "stdev([1, [2, 3]])",
+         "result": 1
+        },
+        {
+         "expression": "rept(arrayStr, 2)",
+         "result": ["abcabc", "bcdbcd", "cdecde", "defdef", "efgefg"]
+        },
+        {
+         "expression": "stdevA([1, [2, 3]])",
+         "result": 1
+        },
+        {
+         "expression": "rept(\"a\", arrayInt)",
+         "result": ["a", "aa", "aaa", "aaaa", "aaaaa", "aaaaaa", "aaaaaaa"]
+        },
+        {
+         "expression": "stdevp([1, [2, 3]])",
+         "result": 0.8164965809277263
+        },
+        {
+         "expression": "round(arrayNum)",
+         "result": [-3, -2, -1, 0, 1, 2, 3]
+        },
+        {
+         "expression": "stdevpA([1, [2, 3]])",
+         "result": 0.8164965809277263
+        },
+        {
+         "expression": "search(arrayStr, arrayStr, [0,0,0,0,0])",
+         "result": [
+           [0, "abc"],
+           [0, "bcd"],
+           [0, "cde"],
+           [0, "def"],
+           [0, "efg"]
+         ]
+        },
+        {
+         "expression": "substitute([\"abc\", [\"aab\", \"ghi\"]], \"a\", \"A\", [0, [1, 0]])",
+         "result": ["Abc", ["aAb", "ghi"]]
+        },
+        {
+         "expression": "search(\"c\", arrayStr, [0,1,2,3,4,5])",
+         "result": [[2, "c"], [1, "c"], [], [], [], []]
+        },
+        {
+         "expression": "sum([1, [2, 3]])",
+         "result": 6
+        },
+        {
+         "expression": "search(arrayStr, arrayStr, 0)",
+         "result": [
+           [0, "abc"],
+           [0, "bcd"],
+           [0, "cde"],
+           [0, "def"],
+           [0, "efg"]
+         ]
+        },
+        {
+         "expression": "tan([1, [2, 3]])",
+         "result": [1.5574077246549023, [-2.185039863261519, -0.1425465430742778]]
+        },
+        {
+         "expression": "search(arrayStr, \"abcdefg\", [0,1,2,3])",
+         "result": [
+           [0, "abc"],
+           [1, "bcd"],
+           [2, "cde"],
+           [3, "def"],
+           [4, "efg"]
+         ]
+        },
+        {
+         "expression": "trim([\" abc \", [\" def \", \" ghi \"]])",
+         "result": ["abc", ["def", "ghi"]]
+        },
+        {
+         "expression": "search(\"b\", \"abcbebg\", [0,1,2,3])",
+         "result": [
+           [1, "b"],
+           [1, "b"],
+           [3, "b"],
+           [3, "b"]
+         ]
+        },
+        {
+         "expression": "trunc([1.5, [2.5, 3.5]])",
+         "result": [1, [2, 3]]
+        },
+        {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | second([@, @])",
+         "result": [15, 15]
+        },
+        {
+         "expression": "upper([\"abc\", [\"def\", \"ghi\"]])",
+         "result": ["ABC", ["DEF", "GHI"]]
+        },
+        {
+         "expression": "sign(arrayInt)",
+         "result": [1, 1, 1, 1, 1, 1, 1]
+        },
+        {
+         "expression": "datetime(2024, 3, 8) | weekday([[@, @], [@, @]], 1)",
+         "result": [[6, 6], [6, 6]]
+        },
+        {
+         "expression": "sin(arrayNum)",
+         "result": [
+           0.19024072762619915, -0.7965654722360865, -0.8912073600614354, 0,
+           0.8912073600614354, 0.7965654722360865, -0.19024072762619915
+         ]
+        },
+        {
+         "expression": "datetime(2024, 3, 8) | year([[@, @], [@, @]])",
+         "result": [[2024, 2024], [2024, 2024]]
+        },
+        {
+         "expression": "split(arrayStr, \"\")",
+         "result": [
+           ["a", "b", "c"],
+           ["b", "c", "d"],
+           ["c", "d", "e"],
+           ["d", "e", "f"],
+           ["e", "f", "g"]
+         ]
+       },
+       {
+         "expression": "split(\"abcdefg\", [\"b\", \"c\"])",
+         "result": [
+           ["a", "cdefg"],
+           ["ab", "defg"]
+         ]
+       },
+       {
+         "expression": "split(arrayStr, [\"a\", \"b\"])",
+         "result": [
+           ["", "bc"],
+           ["", "cd"],
+           ["c", "d", "e"],
+           ["d", "e", "f"],
+           ["e", "f", "g"]
+         ]
+       },
+       {
+         "expression": "sqrt(arrayNum[?@ > 0])",
+         "result": [
+           1.0488088481701516,
+           1.489966442575134,
+           1.8256505689753448
+         ]
+       },
+       {
+         "expression": "startsWith(arrayStr, arrayStr)",
+         "result": [true,
+         true,
+         true,
+         true,
+         true]
+       },
+       {
+         "expression": "startsWith(arrayStr, \"b\")",
+         "result": [
+           false,
+           true,
+           false,
+           false,
+           false
+         ]
+       },
+       {
+         "expression": "startsWith(\"abcdefg\", [\"a\", \"b\", \"c\"])",
+         "result": [
+           true,
+           false,
+           false
+         ]
+       },
+       {
+         "expression": "substitute(arrayStr, \"c\", \"C\", [0,0,0,0,0])",
+         "result": ["abC","bCd","Cde","def","efg"]
+       },
+       {
+         "expression": "tan(arrayNum)",
+         "result": [-0.1937796334476594, 1.3176122402817965, -1.9647596572486523, 0, 1.9647596572486523, -1.3176122402817965, 0.1937796334476594]
+       },
+       {
+         "expression": "trim(arrayStr)",
+         "result": ["abc", "bcd", "cde", "def", "efg"]
+       },
+       {
+         "expression": "trunc(arrayNum, [1,1,0,0,0,1,1])",
+         "result": [-3.3, -2.2, -1, 0, 1, 2.2, 3.3]
+       },
+       {
+         "expression": "trunc(arrayNum)",
+         "result": [-3, -2, -1, 0, 1, 2, 3]
+       },
+       {
+         "expression": "upper(arrayStr)",
+         "result": ["ABC", "BCD", "CDE", "DEF", "EFG"]
+       },
+       {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | weekday([@, @ + 1], 1)",
+         "result": [7, 1]
+       },
+       {
+         "expression": "datetime(2024, 10, 12, 13, 14, 15, 16) | year([@, @ + 1])",
+         "result": [2024, 2024]
+       }
+    ]
+  }
+]

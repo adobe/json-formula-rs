@@ -1,0 +1,704 @@
+[
+  {
+    "given": {},
+    "cases": [
+      {
+        "expression": "casefold(\"AbC\")",
+        "result": "abc"
+      },
+      {
+        "expression": "datetime(2010, 10, 10) | [year(@), month(@), day(@)]",
+        "result": [2010, 10, 10]
+      },
+      {
+        "expression": "datetime(2010, 2, 28) | [year(@), month(@), day(@)]",
+        "result": [2010, 2, 28]
+      },
+      {
+        "expression": "deepScan({a : {b1 : {c : 2}, b2 : {c : 3}}}, \"c\")",
+        "result": [2, 3]
+      },
+      {
+        "expression": "deepScan({a : {b1 : {c : 2, d: null}, b2 : {c : 3}}}, \"c\")",
+        "result": [2, 3]
+      },
+      {
+        "expression": "entries({a: 1, b: 2})",
+        "result": [
+          ["a", 1],
+          ["b", 2]
+        ]
+      },
+      {
+        "expression": "entries([4,5])",
+        "result": [
+          ["0", 4],
+          ["1", 5]
+        ]
+      },
+      {
+        "expression": "fromEntries([[\"a\", 1], [\"b\", 2]])",
+        "result": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      {
+        "expression": "unique([1, 2, 3, 4, 1, 1, 2])",
+        "result": [1, 2, 3, 4]
+      },
+      {
+        "expression": "value({a: 1, b:2, c:3}, \"a\")",
+        "result": 1
+      },
+      {
+        "expression": "value([1, 2, 3, 4], 2)",
+        "result": 3
+      },
+      {
+        "expression": "abs(-1)",
+        "result": 1
+      },
+      {
+        "expression": "avg([1, 2, 3])",
+        "result": 2
+      },
+      {
+        "expression": "ceil(10)",
+        "result": 10
+      },
+      {
+        "expression": "contains([1, 2, 3, 4], 2)",
+        "result": true
+      },
+      {
+        "expression": "contains([1, 2, 3, 4], -1)",
+        "result": false
+      },
+      {
+        "expression": "contains(\"Abcd\", \"d\")",
+        "result": true
+      },
+      {
+        "expression": "contains(\"Abcd\", \"x\")",
+        "result": false
+      },
+      {
+        "expression": "endsWith(\"Abcd\", \"d\")",
+        "result": true
+      },
+      {
+        "expression": "endsWith(\"Abcd\", \"A\")",
+        "result": false
+      },
+      {
+        "expression": "floor(10.4)",
+        "result": 10
+      },
+      {
+        "expression": "floor(10)",
+        "result": 10
+      },
+      {
+        "expression": "join([\"a\", \"b\", \"c\"], \",\")",
+        "result": "a,b,c"
+      },
+      {
+        "expression": "join([1, 2, 3, null()], \"|\")",
+        "result": "1|2|3|null"
+      },
+      {
+        "expression": "keys({a : 3, b : 4})",
+        "result": ["a", "b"]
+      },
+      {
+        "expression": "length(`[]`)",
+        "result": 0
+      },
+      {
+        "expression": "length(\"\")",
+        "result": 0
+      },
+      {
+        "expression": "length(\"abcd\")",
+        "result": 4
+      },
+      {
+        "expression": "length([1, 2, 3, 4])",
+        "result": 4
+      },
+      {
+        "expression": "length(`{}`)",
+        "result": 0
+      },
+      {
+        "expression": "length({a : 3, b : 4})",
+        "result": 2
+      },
+      {
+        "expression": "map([1, 2, 3, 4], &(@ + 1))",
+        "result": [2, 3, 4, 5]
+      },
+      {
+        "expression": "map([\"doe\", \"nick\", \"chris\"], &length(@))",
+        "result": [3, 4, 5]
+      },
+      {
+        "expression": "max([1, 2, 3], [4, 5, 6], 7)",
+        "result": 7
+      },
+      {
+        "expression": "max([\"a\", \"a1\", \"b\"], null(), true())",
+        "result": 0
+      },
+      {
+        "expression": "max(8, 10, 12)",
+        "result": 12
+      },
+      {
+        "expression": "maxA([1, 2, 3], [4, 5, 6])",
+        "result": 6
+      },
+      {
+        "expression": "maxA([\"a\", \"a1\", \"b\", null()])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "maxA(8, 10, 12, \"14\")",
+        "result": 14
+      },
+      {
+        "expression": "minA([1, 2, 3], [4, 5, 6])",
+        "result": 1
+      },
+      {
+        "expression": "minA(\"4\", 8, 10, 12, null())",
+        "result": 4
+      },
+      {
+        "expression": "avgA([1, 2, \"3\", null()])",
+        "result": 2
+      },
+      {
+        "expression": "merge({a: 1, b: 2}, {c : 3, d: 4})",
+        "result": {
+          "a": 1,
+          "b": 2,
+          "c": 3,
+          "d": 4
+        }
+      },
+      {
+        "expression": "merge({a: 1, b: 2}, {a : 3, d: 4})",
+        "result": {
+          "a": 3,
+          "b": 2,
+          "d": 4
+        }
+      },
+      {
+        "expression": "min([1, 2, 3], [4, 5, 6], 7, false())",
+        "result": 1
+      },
+      {
+        "expression": "min([\"a\", \"a1\", \"b\"])",
+        "result": 0
+      },
+      {
+        "expression": "min(8, 10, 12)",
+        "result": 8
+      },
+      {
+        "expression": "notNull(1, 2, 3, 4, `null`)",
+        "result": 1
+      },
+      {
+        "expression": "notNull(`null`, 2, 3, 4, `null`)",
+        "result": 2
+      },
+      {
+        "expression": "reduce([1, 2, 3], &(accumulated + current))",
+        "result": 6
+      },
+      {
+        "expression": "reduce([3, 3, 3], &accumulated * current, 1) ",
+        "result": 27
+      },
+      {
+        "data": "register(\"_product\", &@[0] * @[1])",
+        "expression": "register(\"_product\", &@[0] * @[1]) | _product([2,21])",
+        "result": 42
+      },
+      {
+        "data": "registerWithParams(\"Product\", &@[0] * @[1])",
+        "expression": "registerWithParams(\"Product\", &@[0] * @[1]) | Product(2, 21)",
+        "result": 42
+      },
+      {
+        "data": "register(\"_ltrim\", &split(@,\"\").reduce(@, &accumulated & current | if(@ = \" \", \"\", @), \"\")) | _ltrim(\"  abc  \")",
+        "expression": "register(\"_ltrim\", &split(@,\"\").reduce(@, &accumulated & current | if(@ = \" \", \"\", @), \"\")) | _ltrim(\"  abc  \")",
+        "result": "abc  "
+      },
+      {
+        "data": "registerWithParams(\"Product\", &@[0] * @[1])",
+        "expression": "registerWithParams(\"Product\", &@[0] * @[1]) | Product(2, 21)",
+        "result": 42
+      },
+      {
+        "data": "registerWithParams(\"Ltrim\", &split(@[0],\"\").reduce(@, &accumulated & current | if(@ = \" \", \"\", @), \"\")) | Ltrim(\"  abc  \")",
+        "expression": "registerWithParams(\"Ltrim\", &split(@[0],\"\").reduce(@, &accumulated & current | if(@ = \" \", \"\", @), \"\")) | Ltrim(\"  abc  \")",
+        "result": "abc  "
+      },
+      {
+        "expression": "reverse([\"a\", \"b\", \"c\"])",
+        "result": ["c", "b", "a"]
+      },
+      {
+        "expression": "sort([1, 2, 4, 3, 1])",
+        "result": [1, 1, 2, 3, 4]
+      },
+      {
+        "expression": "sort([\"20\", 20, true(), \"100\", null(), 100])",
+        "result": [20, 100, "100", "20", true, null]
+      },
+      {
+        "expression": "sortBy([\"abcd\", \"e\", \"def\"], &length(@))",
+        "result": ["e", "def", "abcd"]
+      },
+      {
+        "expression": "sortBy([{year: 2010}, {year: 2020}, {year: 1910}], &year)",
+        "result": [
+          {
+            "year": 1910
+          },
+          {
+            "year": 2010
+          },
+          {
+            "year": 2020
+          }
+        ]
+      },
+      {
+        "expression": "sortBy([-15, 30, -10, -11, 5], &abs(@))",
+        "result": [5, -10, -11, -15, 30]
+      },
+      {
+        "expression": "startsWith(\"jack is at home\", \"jack\")",
+        "result": true
+      },
+      {
+        "expression": "sum([1, 2, 3])",
+        "result": 6
+      },
+      {
+        "expression": "toArray(1)",
+        "result": [1]
+      },
+      {
+        "expression": "toArray(null())",
+        "result": [null]
+      },
+      {
+        "expression": "toDate(\"20231110T130000+04:00\")",
+        "result": 19671.375
+      },
+      {
+        "expression": "toDate(\"2023-11-10T13:00:00+04:00\")",
+        "result": 19671.375
+      },
+      {
+        "expression": "toDate(\"20231110\") | year(@) & \"/\" & month(@)",
+        "result": "2023/11"
+      },
+      {
+        "expression": "toNumber(1)",
+        "result": 1
+      },
+      {
+        "expression": "toNumber(1)",
+        "result": 1
+      },
+      {
+        "expression": "toNumber({a: 1})",
+        "result": null
+      },
+      {
+        "expression": "toNumber(true())",
+        "result": 1
+      },
+      {
+        "expression": "toNumber(\"10f\")",
+        "result": null
+      },
+      {
+        "expression": "toNumber(\"FF\", 16)",
+        "result": 255
+      },
+      {
+        "expression": "toNumber(true())",
+        "result": 1
+      },
+      {
+        "expression": "toString(1)",
+        "result": "1"
+      },
+      {
+        "expression": "toString(true())",
+        "result": "true"
+      },
+      {
+        "expression": "toString(\"hello\")",
+        "result": "hello"
+      },
+      {
+        "expression": "toNumber(\"10f\")",
+        "result": null
+      },
+      {
+        "expression": "type(1)",
+        "result": "number"
+      },
+      {
+        "expression": "type(\"\")",
+        "result": "string"
+      },
+      {
+        "expression": "values({a : 3, b : 4})",
+        "result": [3, 4]
+      },
+      {
+        "expression": "zip([1, 2, 3], [4, 5, 6, 7])",
+        "result": [
+          [1, 4],
+          [2, 5],
+          [3, 6]
+        ]
+      },
+      {
+        "expression": "and(10 > 8, length(\"foo\") < 5)",
+        "result": true
+      },
+      {
+        "expression": "and(`null`, length(\"foo\") < 5)",
+        "result": false
+      },
+      {
+        "expression": "datedif(datetime(2001, 1, 1), datetime(2003, 1, 1), \"y\")",
+        "result": 2
+      },
+      {
+        "expression": "datedif(datetime(2001, 6, 1), datetime(2003, 8, 15), \"D\")",
+        "result": 805
+      },
+      {
+        "expression": "datedif(datetime(2001, 6, 1), datetime(2003, 8, 15), \"YD\")",
+        "result": 75
+      },
+      {
+        "expression": "day(datetime(2008,5,23))",
+        "result": 23
+      },
+      {
+        "expression": "eomonth(datetime(2011, 1, 1), 1) | [month(@), day(@)]",
+        "result": [2, 28]
+      },
+      {
+        "expression": "eomonth(datetime(2011, 1, 1), -3) | [month(@), day(@)]",
+        "result": [10, 31]
+      },
+      {
+        "expression": "exp(10)",
+        "result": 22026.465794806718
+      },
+      {
+        "expression": "find(\"m\", \"abm\")",
+        "result": 2
+      },
+      {
+        "expression": "find(\"M\", \"abMcdM\", 3)",
+        "result": 5
+      },
+      {
+        "expression": "find(\"M\", \"ab\")",
+        "result": null
+      },
+      {
+        "expression": "find(\"M\", \"abMcdM\", 2)",
+        "result": 2
+      },
+      {
+        "expression": "hour(datetime(2008,5,23,12, 0, 0))",
+        "result": 12
+      },
+      {
+        "expression": "hour(time(12, 0, 0))",
+        "result": 12
+      },
+      {
+        "expression": "if(true(), 1, 2)",
+        "result": 1
+      },
+      {
+        "expression": "if(false(), 1, 2)",
+        "result": 2
+      },
+      {
+        "expression": "left(\"Sale Price\", 4)",
+        "result": "Sale"
+      },
+      {
+        "expression": "left(\"Sweden\")",
+        "result": "S"
+      },
+      {
+        "expression": "left([4, 5, 6], 2)",
+        "result": [4, 5]
+      },
+      {
+        "expression": "lower(\"E. E. Cummings\")",
+        "result": "e. e. cummings"
+      },
+      {
+        "expression": "mid(\"Fluid Flow\",0,5)",
+        "result": "Fluid"
+      },
+      {
+        "expression": "mid(\"Fluid Flow\",6,20)",
+        "result": "Flow"
+      },
+      {
+        "expression": "mid(\"Fluid Flow\",20,5)",
+        "result": ""
+      },
+      {
+        "expression": "mid([0,1,2,3,4,5,6,7,8,9], 2, 3)",
+        "result": [2, 3, 4]
+      },
+      {
+        "expression": "minute(datetime(2008,5,23,12, 10, 0))",
+        "result": 10
+      },
+      {
+        "expression": "minute(time(12, 10, 0))",
+        "result": 10
+      },
+      {
+        "expression": "mod(3, 2)",
+        "result": 1
+      },
+      {
+        "expression": "mod(-3, 2)",
+        "result": -1
+      },
+      {
+        "expression": "month(datetime(2008,5,23))",
+        "result": 5
+      },
+      {
+        "expression": "not(length(\"bar\") > 0)",
+        "result": false
+      },
+      {
+        "expression": "not(false())",
+        "result": true
+      },
+      {
+        "expression": "not(\"abcd\")",
+        "result": false
+      },
+      {
+        "expression": "not(\"\")",
+        "result": true
+      },
+      {
+        "expression": "power(10, 2)",
+        "result": 100
+      },
+      {
+        "expression": "proper(\"this is a TITLE\")",
+        "result": "This Is A Title"
+      },
+      {
+        "expression": "proper(\"2-way street\")",
+        "result": "2-Way Street"
+      },
+      {
+        "expression": "proper(\"76BudGet\")",
+        "result": "76Budget"
+      },
+      {
+        "expression": "replace(\"abcdefghijk\", 5, 5, \"*\")",
+        "result": "abcde*k"
+      },
+      {
+        "expression": "replace(\"2009\",2,2,\"10\")",
+        "result": "2010"
+      },
+      {
+        "expression": "replace(\"123456\",0,3,\"@\")",
+        "result": "@456"
+      },
+      {
+        "expression": "replace([\"blue\",\"black\",\"white\",\"red\"], 1, 2, \"green\")",
+        "result": ["blue", "green", "red"]
+      },
+      {
+        "expression": "rept(\"x\", 5)",
+        "result": "xxxxx"
+      },
+      {
+        "expression": "right(\"Sale Price\", 4)",
+        "result": "rice"
+      },
+      {
+        "expression": "right(\"Sweden\")",
+        "result": "n"
+      },
+      {
+        "expression": "right([4, 5, 6], 2)",
+        "result": [5, 6]
+      },
+      {
+        "expression": "round(2.15, 1)",
+        "result": 2.2
+      },
+      {
+        "expression": "round(626.3,-3)",
+        "result": 1000
+      },
+      {
+        "expression": "round(626.3, 0)",
+        "result": 626
+      },
+      {
+        "expression": "round(1.98,-1)",
+        "result": 0
+      },
+      {
+        "expression": "round(1.95583)",
+        "result": 2
+      },
+      {
+        "expression": "search(\"a?c\", \"acabc\")",
+        "result": [2, "abc"]
+      },
+      {
+        "expression": "second(datetime(2008,5,23,12, 10, 53))",
+        "result": 53
+      },
+      {
+        "expression": "second(time(12, 10, 53))",
+        "result": 53
+      },
+      {
+        "expression": "millisecond(datetime(2008, 5, 23, 12, 10, 53, 42))",
+        "result": 42
+      },
+      {
+        "expression": "split(\"abcdef\", \"\")",
+        "result": ["a", "b", "c", "d", "e", "f"]
+      },
+      {
+        "expression": "split(\"abcdef\", \"e\")",
+        "result": ["abcd", "f"]
+      },
+      {
+        "expression": "sqrt(4)",
+        "result": 2
+      },
+      {
+        "expression": "stdev([1345, 1301, 1368])",
+        "result": 34.044089061098404
+      },
+      {
+        "expression": "stdevp([1345, 1301, 1368])",
+        "result": 27.79688231918724
+      },
+      {
+        "expression": "stdevp([1345, 1301, 1368])",
+        "result": 27.79688231918724
+      },
+      {
+        "expression": "stdevA([1345, 1301, 1368])",
+        "result": 34.044089061098404
+      },
+      {
+        "expression": "stdevpA([1345, \"1301\", 1368])",
+        "result": 27.79688231918724
+      },
+      {
+        "expression": "stdevA([1345, 1301, \"1368\"])",
+        "result": 34.044089061098404
+      },
+      {
+        "expression": "substitute(\"Sales Data\", \"Sales\", \"Cost\")",
+        "result": "Cost Data"
+      },
+      {
+        "expression": "substitute(\"Quarter 1, 2001\", \"1\", \"2\", 1)",
+        "result": "Quarter 1, 2002"
+      },
+      {
+        "expression": "substitute(\"Quarter 1, 2011\", \"1\", \"2\", 2)",
+        "result": "Quarter 1, 2012"
+      },
+      {
+        "expression": "time(12, 0, 0) | [hour(@), minute(@), second(@)]",
+        "result": [12, 0, 0]
+      },
+      {
+        "expression": "trim(\"   ab    c   \")",
+        "result": "ab c"
+      },
+      {
+        "expression": "trunc(8.9)",
+        "result": 8
+      },
+      {
+        "expression": "trunc(-8.9)",
+        "result": -8
+      },
+      {
+        "expression": "trunc(8.912, 2)",
+        "result": 8.91
+      },
+      {
+        "expression": "upper(\"abcd\")",
+        "result": "ABCD"
+      },
+      {
+        "expression": "year(datetime(2008,5,23))",
+        "result": 2008
+      },
+      {
+        "expression": "datetime(2023,13,5) | year(@) & \"/\" & month(@)",
+        "result": "2024/1"
+      },
+      {
+        "expression": "datetime(2023,13,5 - 30)| year(@) & \"/\" & month(@) & \"/\" & day(@) ",
+        "result": "2023/12/6"
+      },
+      {
+        "expression": "weekday(datetime(2006,5,21))",
+        "result": 1
+      },
+      {
+        "expression": "weekday(datetime(2006,5,21), 2)",
+        "result": 7
+      },
+      {
+        "expression": "weekday(datetime(2006,5,21), 3)",
+        "result": 6
+      },
+      {
+        "expression": "avg(([1,2,3] * [2,3,4]).debug(@)).round(@,3)",
+        "result": 6.667
+      },
+      {
+        "expression": "avg(debug([1,2,3] * [2,3,4],&\"average of: \" &toString(@))).round(@,3)",
+        "result": 6.667
+      }
+    ]
+  }
+]

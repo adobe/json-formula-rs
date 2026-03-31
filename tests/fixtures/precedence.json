@@ -1,0 +1,70 @@
+[
+  {
+    "given": {},
+    "cases": [
+      {
+        "expression": "1 + 2 & 2 * 2",
+        "result": "34",
+        "precedence": "(1+2)&(2*2)"
+      },
+      {
+        "expression": "2 & 3 + 4 * 5",
+        "result": "223",
+        "precedence": "2&(3+(4*5))"
+      },
+      {
+        "expression": "1 || 2 && false()",
+        "result": 1,
+        "precedence": "1||(2&&false())"
+      },
+      {
+        "expression": "2 || 0 == 2",
+        "result": 2,
+        "precedence": "2||(0==2)"
+      },
+      {
+        "expression": "  !true() + true()",
+        "result": 1,
+        "precedence": "(!true())+true()"
+      },
+      {
+        "expression": "true() || true() && false()",
+        "result": true,
+        "precedence": "true()||(true()&&false())"
+      },
+      {
+        "data": {
+          "foo": [
+            { "a": 1, "b": 2, "c": 3 },
+            { "a": 3, "b": 4 }
+          ]
+        },
+        "expression": "foo[?a == `1` || b ==`2` && c == `5`]",
+        "result": [{ "a": 1, "b": 2, "c": 3 }],
+        "precedence": "foo([?((a==`1`)||((b==`2`)&&(c==`5`)))])"
+      },
+      {
+        "data": {
+          "foo": [
+            { "a": 1, "b": 2, "c": 3 },
+            { "a": 3, "b": 4 }
+          ]
+        },
+        "expression": "foo[?(a == `1` || b ==`2`) && c == `5`]",
+        "result": [],
+        "precedence": "foo([?(((((a==`1`)||(b==`2`))))&&(c==`5`))])"
+      },
+      {
+        "data": {
+          "foo": [
+            { "a": 1, "b": 2, "c": 3 },
+            { "a": 3, "b": 4 }
+          ]
+        },
+        "expression": "foo[?!(a == `1` || b ==`2`)]",
+        "result": [{ "a": 3, "b": 4 }],
+        "precedence": "foo([?(!((((a==`1`)||(b==`2`)))))])"
+      }
+    ]
+  }
+]

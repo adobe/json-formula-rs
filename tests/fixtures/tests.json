@@ -1,0 +1,1753 @@
+[
+  {
+    "given": {
+      "purchase-order": {
+        "address": {
+          "street": "123 Oak Street",
+          "city": "San Jose",
+          "state": "California",
+          "country": "USA"
+        },
+        "items": [
+          {
+            "desc": "pens",
+            "quantity": 2,
+            "price": 3.23,
+            "subtotal": 6.46
+          },
+          {
+            "desc": "pencils",
+            "quantity": 3,
+            "price": 1.34,
+            "subtotal": 4.02
+          }
+        ]
+      },
+      "datetime": {
+        "epoch": {
+          "date": 1,
+          "month": 1,
+          "year": 1970,
+          "value": 0
+        },
+        "noon": {
+          "hour": 12,
+          "minute": 0,
+          "second": 0
+        }
+      },
+      "casefold": {
+        "test1": { "str1": "Σίσυφος", "str2": "ΣΊΣΥΦΟΣ" },
+        "test2": { "str1": "Straße", "str2": "Strasse" },
+        "test3": { "str1": "I", "str2": "ı" },
+        "test4": { "str1": "İ", "str2": "i" }
+      },
+      "datedif": {
+        "2022-06-20": "2022-06-20",
+        "2022-06-21": "2022-06-21",
+        "2022-07-21": "2022-07-21",
+        "2023-06-20": "2023-06-20",
+        "2023-06-21": "2023-06-21",
+        "2030-08-01": "2030-08-01"
+      },
+      "nullvalue": null
+    },
+    "cases": [
+      {
+        "fieldsOnly": true,
+        "data": "'purchase-order'",
+        "expression": "values(address)[0].$name",
+        "result": "street"
+      },
+      {
+        "fieldsOnly": true,
+        "data": "'purchase-order'",
+        "expression": "map(items, &price)[*].$name",
+        "result": ["price", "price"]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "contains([2,4,6], items[0].quantity)",
+        "result": true
+      },
+      {
+        "data": "'purchase-order'.address",
+        "expression": "reverse(street)",
+        "result": "teertS kaO 321"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "address",
+        "result": {
+          "street": "123 Oak Street",
+          "city": "San Jose",
+          "state": "California",
+          "country": "USA"
+        }
+      },
+      { "expression": "`true`", "result": true },
+      {
+        "data": "'purchase-order'",
+        "expression": "and(length(address.street) > 2, `true`, true())",
+        "result": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "and(length(address.street) > 2, notFound)",
+        "result": false
+      },
+      { "expression": "and(`{}`, `[]`)", "result": false },
+      { "expression": "and({a: 3}, [3,4])", "result": true },
+      {
+        "data": "'purchase-order'",
+        "expression": "or(`false`, length(address.street) > 2, `true`, true())",
+        "result": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "or(length(address.street) > 20, notFound)",
+        "result": false
+      },
+      { "expression": "or(`{}`, `[]`)", "result": false },
+      { "expression": "or({a: 12})", "result": true },
+      { "expression": "or([2,3])", "result": true },
+      {
+        "data": "'purchase-order'",
+        "expression": "if(items[0].price > 1, \"first\", \"second\")",
+        "result": "first"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "if(sum(items[*].price) == 0, \"first\", \"second\")",
+        "result": "second"
+      },
+      {
+        "expression": "if(`[]`, \"first\", \"second\")",
+        "result": "second"
+      },
+      {
+        "expression": "if(`{}`, \"first\", \"second\")",
+        "result": "second"
+      },
+      {
+        "expression": "if(`{\"A\": 21}`, \"first\", \"second\")",
+        "result": "first"
+      },
+      {
+        "expression": "if(`[2]`, \"first\", \"second\")",
+        "result": "first"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "sum(items[*].subtotal)",
+        "result": 10.48
+      },
+      { "expression": "sum(`[2,4,6]`)", "result": 12 },
+      { "expression": "sum([2,\"4\",6,`true`])", "result": 8 },
+      { "expression": "(3 + 2) * 10 / 2 - 5", "result": 20 },
+      { "expression": "2 * \"$2\" + `null`", "error": "TypeError" },
+      { "expression": "\"0x11\" * 1", "error": "TypeError"},
+      { "expression": "\"0b11\" * 1", "error": "TypeError"},
+      { "expression": "\"0o11\" * 1", "error": "TypeError"},
+      { "expression": "1+\"01e01\"", "result": 11},
+      { "expression": "1*\" +011e+01\\n\"", "result": 110},
+      { "expression": "1*\" -011e-01\\n\"", "result": -1.1},
+      { "expression": "1 < 2", "result": true },
+      { "expression": "1 > 2", "result": false },
+      { "expression": "12 >= 12", "result": true },
+      { "expression": "12 >= 10", "result": true },
+      { "expression": "10 <= 10", "result": true },
+      { "expression": "12 <= 10", "result": false },
+      { "expression": "10 == 10", "result": true },
+      { "expression": "10 == 11", "result": false },
+      { "expression": "10 == 11", "result": false },
+      { "expression": "10 != 11", "result": true },
+      { "expression": "10 != 10", "result": false },
+      { "expression": "4 + \"8\"", "result": 12 },
+      { "expression": "\"4\" + \"8\"", "result": 12 },
+      { "expression": "[1,2,3] * 2", "result": [2, 4, 6] },
+      {
+        "expression": "[1,2,3] * [2,4,6,8]",
+        "result": [2, 8, 18, 0]
+      },
+      {
+        "expression": "[1,2,3] * [2,[3,4],6,8,10]",
+        "result": [2, [6, 8], 18, 0, 0]
+      },
+      {
+        "data": "`{\"v1\":1,\"v2\":2,\"v3\":3}`",
+        "expression": "* * *",
+        "result": [1, 4, 9]
+      },
+      { "expression": "[1,2,3] + 2", "result": [3, 4, 5] },
+      {
+        "expression": "[1,2,3] + [2,4,6,8]",
+        "result": [3, 6, 9, 8]
+      },
+      {
+        "expression": "[1,2,3] + [2,[3,4],6,8,10]",
+        "result": [3, [5, 6], 9, 8, 10]
+      },
+      { "expression": "2 - [1,2,3]", "result": [1, 0, -1] },
+      { "expression": "[1,2,3] - 2", "result": [-1, 0, 1] },
+      {
+        "expression": "[1,2,3] - [2,4,6,8]",
+        "result": [-1, -2, -3, -8]
+      },
+      {
+        "expression": "[2,[3,4],6,8,10] - [1,2,3]",
+        "result": [1, [1, 2], 3, 8, 10]
+      },
+      { "expression": "4 / [1,2,4]", "result": [4, 2, 1] },
+      { "expression": "[4,2,1] / 2", "result": [2, 1, 0.5] },
+      {
+        "expression": "[1,\"2\",3] / [1,1,3,8]",
+        "result": [1, 2, 1, 0]
+      },
+      {
+        "expression": "[2,[2,4],12,8] / [1,2,3,4,5]",
+        "result": [2, [1, 2], 4, 2, 0]
+      },
+      {
+        "expression": "2 ^ [1,2,4]",
+        "error": "SyntaxError",
+        "was": [2, 4, 16]
+      },
+      {
+        "expression": "[4,2,1] ^ 2",
+        "error": "SyntaxError",
+        "was": [16, 4, 1]
+      },
+      {
+        "expression": "[1,\"2\",3] ^ [1,1,3,8]",
+        "error": "SyntaxError",
+        "was": [1, 2, 27, 0]
+      },
+      {
+        "expression": "[1,\"a\",\"b\"] & [\"b\",1,2]",
+        "result": ["1b", "a1", "b2"]
+      },
+      {
+        "expression": "12 & 34 & \"b\" & true()",
+        "result": "1234btrue"
+      },
+      { "expression": ".123", "result": 0.123 },
+      { "expression": "-.1 + -.1 + .1", "result": -0.1 },
+      {
+        "data": "'purchase-order'",
+        "expression": "-items[0].quantity",
+        "result": -2
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "- -items[0].quantity",
+        "result": 2
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "4 + -items[0].quantity",
+        "result": 2
+      },
+      { "expression": "-\"string\"", "error": "TypeError" },
+      { "data": "`{\"s\": \"string\"}`", "expression": "-s", "error": "TypeError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "items[0].quantity - 2",
+        "result": 0
+      },
+      { "expression": "`5` - `4`", "result": 1 },
+      { "expression": "\"5\" - `4`", "result": 1 },
+      {
+        "data": "`{\"a\": \"abbabba\", \"b\": \"abba\", \"c\": \"a\"}`",
+        "expression": "substitute(a, b, c)",
+        "result": "abba"
+      },
+      {
+        "data": "`{\"a\": \"abbabbabba\", \"b\": \"abba\", \"c\": \"a\"}`",
+        "expression": "substitute(a, b, c, 2)",
+        "result": "abbabba"
+      },
+      {
+        "data": "`{\"a\": \"abbabbabba\", \"b\": \"abba\", \"c\": \"a\"}`",
+        "expression": "substitute(a, b, c, 3)",
+        "result": "abbabbabba"
+      },
+      {
+        "data": "`{\"a\": \"abbabba\", \"b\": \"abba\", \"c\": \"a\"}`",
+        "expression": "substitute(a, b, c, 3)",
+        "result": "abbabba"
+      },
+      {
+        "expression": "substitute(\"deed\", \"d\", \"f\", -1)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "substitute(\"deed\", \"d\", \"f\", 0)",
+        "result": "feed"
+      },
+      {
+        "expression": "substitute(\"deed\", \"d\", \"f\")",
+        "result": "feef"
+      },
+      {
+        "expression": "substitute(\"deed\", \"e\", \"ee\")",
+        "result": "deeeed"
+      },
+      {
+        "expression": "substitute(\"AAAAAAAAAA\", \"AA\", \"A\")",
+        "result": "AAAAA"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "value(items, \"length\")",
+        "error": "TypeError"
+      },
+      {
+        "expression": "value(value('purchase-order', \"address\"), \"street\")",
+        "result": "123 Oak Street"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "value(value(items, 0), \"desc\")",
+        "result": "pens"
+      },
+      {
+        "expression": "value(value(value(@, \"purchase-order\"), \"address\"),\"city\")",
+        "result": "San Jose"
+      },
+      {
+        "expression": "value(@, \"purchase-orders\")",
+        "result": null
+      },
+      {
+        "expression": "value(@, \"purchase-orders\")",
+        "result": null
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "value(items, 4)",
+        "result": null
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "value(items, \"$name\")",
+        "result": "items",
+        "fieldsOnly": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "value(address.street, \"$name\")",
+        "result": "street",
+        "fieldsOnly": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "hasProperty(address.street, \"$name\")",
+        "result": true,
+        "fieldsOnly": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "lower(address.missing)",
+        "result": ""
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "lower(address.street)",
+        "result": "123 oak street"
+      },
+      { "expression": "lower(\"\")", "result": "" },
+      { "expression": "lower(\"abc\")", "result": "abc" },
+      { "expression": "lower(\"aBc\")", "result": "abc" },
+      { "expression": "lower(42)", "result": "42" },
+      {
+        "data": "'purchase-order'",
+        "expression": "upper(address.missing)",
+        "result": ""
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "upper(address.street)",
+        "result": "123 OAK STREET"
+      },
+      { "expression": "upper(\"\")", "result": "" },
+      { "expression": "upper(\"ABC\")", "result": "ABC" },
+      { "expression": "upper(\"aBc\")", "result": "ABC" },
+      { "expression": "upper(42)", "result": "42" },
+      {
+        "data": "'purchase-order'",
+        "expression": "exp(items[0].quantity)",
+        "result": 7.38905609893065
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "exp(missing)",
+        "result": 1
+      },
+      { "expression": "exp(0)", "result": 1 },
+      { "expression": "exp(\"0\")", "result": 1 },
+      { "expression": "exp(1)", "result": 2.718281828459045 },
+      {
+        "data": "'purchase-order'",
+        "expression": "power(10,items[0].quantity)",
+        "result": 100
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "power(missing, 1)",
+        "result": 0
+      },
+      { "expression": "power(1, 1)", "result": 1 },
+      { "expression": "power(2, 3)", "result": 8 },
+      { "expression": "power(2, -1)", "result": 0.5 },
+      { "expression": "power(-2, -1)", "result": -0.5 },
+      { "expression": "power(2)", "error": "FunctionError" },
+      {
+        "expression": "find(\"a\", \"abcdabce\", -1)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "[0,1,2,3,4].map(@, &find(\"\", \"abc\", @))",
+        "result": [0,1,2,3,null]
+      },
+      {
+        "expression": "find(\"a\", \"abcdabce\")",
+        "result": 0
+      },
+      {
+        "expression": "find(\"b\", \"abcdabce\")",
+        "result": 1
+      },
+      {
+        "expression": "find(\"abc\", \"abcdabce\")",
+        "result": 0
+      },
+      {
+        "expression": "find(\"abce\", \"abcdabce\")",
+        "result": 4
+      },
+      {
+        "expression": "find(\"ab\", \"abcdabce\",0)",
+        "result": 0
+      },
+      {
+        "expression": "find(\"ab\", \"abcdabce\",100)",
+        "result": null
+      },
+      {
+        "expression": "find(\"z\", \"abcdabce\",0)",
+        "result": null
+      },
+      {
+        "expression": "find(\"abc\", \"abcdabce\",1)",
+        "result": 4
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "find(\"Oak\",address.street)",
+        "result": 4
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "find(\"Oak\", missing)",
+        "result": null
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "find(missing, address.street)",
+        "result": 0
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "find(missing, missing)",
+        "result": 0
+      },
+      { "expression": "left(\"abc\")", "result": "a" },
+      { "expression": "left(\"abc\", 1)", "result": "a" },
+      { "expression": "left(\"abc\", 2)", "result": "ab" },
+      { "expression": "left(\"abc\", 100)", "result": "abc" },
+      { "expression": "left(\"abc\", 0)", "result": "" },
+      { "expression": "left(\"abc\", -1)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "left(address.street)",
+        "result": "1"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "left(missing)",
+        "result": ""
+      },
+      { "expression": "right(\"abc\")", "result": "c" },
+      { "expression": "right(\"abc\", 1)", "result": "c" },
+      { "expression": "right(\"abc\", 2)", "result": "bc" },
+      {
+        "expression": "right(\"abc\", 100)",
+        "result": "abc"
+      },
+      { "expression": "right(\"abc\", 0)", "result": "" },
+      { "expression": "right(\"abc\", -1)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "right(address.street)",
+        "result": "t"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "right(missing)",
+        "result": ""
+      },
+      { "expression": "mid(\"abc\", 0, 0)", "result": "" },
+      { "expression": "mid(\"abc\", 1, 1)", "result": "b" },
+      {
+        "expression": "mid(\"abc\", 1, 100)",
+        "result": "bc"
+      },
+      {
+        "expression": "mid(\"abc\", -1, 100)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "mid(\"abc\", 1, -1)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "mid(\"abc\")",
+        "error": "FunctionError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "mid(address.street, 0, 1)",
+        "result": "1"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "mid(missing, 0, 1)",
+        "result": ""
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"))",
+        "result": ["a"]
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"), 1)",
+        "result": ["a"]
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"), 2)",
+        "result": ["a", "b"]
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"), 100)",
+        "result": ["a", "b", "c"]
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"), 0)",
+        "result": []
+      },
+      {
+        "expression": "left(split(\"abc\", \"\"), -1)",
+        "error": "EvaluationError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "left(split(address.street, \"\"))",
+        "result": ["1"]
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"))",
+        "result": ["c"]
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"), 1)",
+        "result": ["c"]
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"), 2)",
+        "result": ["b", "c"]
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"), 100)",
+        "result": ["a", "b", "c"]
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"), 0)",
+        "result": []
+      },
+      {
+        "expression": "right(split(\"abc\", \"\"), -1)",
+        "error": "EvaluationError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "right(split(address.street, \"\"))",
+        "result": ["t"]
+      },
+      {
+        "expression": "mid(split(\"abc\", \"\"), 0, 0)",
+        "result": []
+      },
+      {
+        "expression": "mid(split(\"abc\", \"\"), 1, 1)",
+        "result": ["b"]
+      },
+      {
+        "expression": "mid(split(\"abc\", \"\"), 1, 100)",
+        "result": ["b", "c"]
+      },
+      {
+        "expression": "mid(split(\"abc\", \"\"), -1, 100)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "mid(split(\"abc\", \"\"))",
+        "error": "FunctionError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "mid(split(address.street, \"\"), 0, 1)",
+        "result": ["1"]
+      },
+      { "expression": "proper(\"\")", "result": "" },
+      {
+        "expression": "proper(\"two words\")",
+        "result": "Two Words"
+      },
+      {
+        "expression": "proper(\"TWO WORDS\")",
+        "result": "Two Words"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "proper(address.country)",
+        "result": "Usa"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "proper(missing)",
+        "result": ""
+      },
+      { "expression": "rept(\"\", 10)", "result": "" },
+      { "expression": "rept(\"a\", 2)", "result": "aa" },
+      {
+        "expression": "rept(\"abc\", 2)",
+        "result": "abcabc"
+      },
+      { "expression": "rept(\"a\", 0)", "result": "" },
+      { "expression": "rept(\"a\", -1)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "rept(address.country, items[0].quantity)",
+        "result": "USAUSA"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "rept(address.country,missing)",
+        "result": ""
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "rept(missing,3)",
+        "result": ""
+      },
+      {
+        "expression": "replace(\"abcdefg\", 2, 2, \"yz\")",
+        "result": "abyzefg"
+      },
+      {
+        "expression": "replace(\"abcdefg\", 2, 0, \"yz\")",
+        "result": "abyzcdefg"
+      },
+      {
+        "expression": "replace(\"abcdefg\", 2, 100, \"yz\")",
+        "result": "abyz"
+      },
+      {
+        "expression": "replace(\"abcdefg\", -1, 100, \"yz\")",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "replace(\"abcdefg\", 1, -1, \"yz\")",
+        "error": "EvaluationError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "replace(address.street,0, 3, \"321\")",
+        "result": "321 Oak Street"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "replace(address.street,0, 3, missing)",
+        "result": " Oak Street"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "replace(missing,0, 1, address.country)",
+        "result": "USA"
+      },
+      {
+        "expression": "replace([\"blue\",\"black\",\"white\",\"red\"], 1, 0, \"green\")",
+        "result": ["blue", "green", "black", "white", "red"]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "replace(items, 0, 1, {desc: \"pens\", quantity: 5, price: 1.1, subtotal: 5.50})",
+        "result": [
+          { "desc": "pens", "quantity": 5, "price": 1.1, "subtotal": 5.5 },
+          { "desc": "pencils", "quantity": 3, "price": 1.34, "subtotal": 4.02 }
+        ]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "replace(items, 0, 1,  null())",
+        "result": [
+          null,
+          { "desc": "pencils", "quantity": 3, "price": 1.34, "subtotal": 4.02 }
+        ]
+      },
+      {
+        "expression": "replace(3, 1, 0, [4,5,6])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "replace(\"3\", 1, 0, [4,5,6])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "replace(\"3\", 1, 0, {a: 4})",
+        "error": "TypeError"
+      },
+      {
+        "expression": "replace(367, 1, 0, 45)",
+        "error": "TypeError"
+      },
+      { "expression": "round(123.456, 0)", "result": 123 },
+      { "expression": "round(123.456, 1)", "result": 123.5 },
+      { "expression": "round(123.456, 2)", "result": 123.46 },
+      {
+        "expression": "round(123.456, 3)",
+        "result": 123.456
+      },
+      {
+        "expression": "round(123.456, 4)",
+        "result": 123.456
+      },
+      { "expression": "round(123.56, -1)", "result": 120 },
+      { "expression": "round(123.56, -2)", "result": 100 },
+      { "expression": "round(123.56, -3)", "result": 0 },
+      { "expression": "round(501.56, -3)", "result": 1000 },
+      {
+        "expression": "round(-123.456, 2)",
+        "result": -123.46
+      },
+      { "expression": "round(-123.456, -1)", "result": -120 },
+      {
+        "expression": "round(1.24349E2, 2)",
+        "result": 124.35
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "round(items[0].price, 1)",
+        "result": 3.2
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "round(items[0].price, missing)",
+        "result": 3
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "round(missing, 1)",
+        "result": 0
+      },
+      { "expression": "round(1.5)", "result": 2 },
+      { "expression": "round(-1.5)", "result": -1 },
+      { "expression": "sqrt(4)", "result": 2 },
+      {
+        "expression": "sqrt(3)",
+        "result": 1.7320508075688772
+      },
+      {
+        "expression": "sqrt(-3)",
+        "error": "EvaluationError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "sqrt(items[1].quantity)",
+        "result": 1.7320508075688772
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "sqrt(missing)",
+        "result": 0
+      },
+      { "expression": "stdev(`[1,\"2\",2,3]`)", "result": 1 },
+      { "expression": "stdev(`[1,[\"2\",[2,3]]]`)", "result": 1 },
+      { "expression": "stdev(`[1]`)", "error": "EvaluationError" },
+      { "expression": "stdev(`[]`)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "stdev(items[*].quantity)",
+        "result": 0.7071067811865476
+      },
+      { "expression": "stdevA(`[\"1\",2,3]`)", "result": 1 },
+      { "expression": "stdevA(`[1,[[\"2\",3]]]`)", "result": 1 },
+      { "expression": "stdevA(`[1]`)", "error": "EvaluationError" },
+      { "expression": "stdevA(`[]`)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "stdev(items[*].quantity)",
+        "result": 0.7071067811865476
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "stdev(missing)",
+        "error": "TypeError"
+      },
+      { "expression": "stdevp(`[2,3]`)", "result": 0.5 },
+      { "expression": "stdevp(`[2,[3]]`)", "result": 0.5 },
+      { "expression": "stdevp(`[2]`)", "result": 0 },
+      { "expression": "stdevp(`[]`)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "stdevp(items[*].quantity)",
+        "result": 0.5
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "stdevp(missing)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "trim(\"  abc  def ghi   \")",
+        "result": "abc def ghi"
+      },
+      {
+        "expression": "trim(\" \\tabc  def ghi   \")",
+        "result": "\tabc def ghi"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "trim(address.street)",
+        "result": "123 Oak Street"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "trim(missing)",
+        "result": ""
+      },
+      { "expression": "trunc(123.456)", "result": 123 },
+      { "expression": "trunc(123.456, 1)", "result": 123.4 },
+      { "expression": "trunc(123.456, 2)", "result": 123.45 },
+      {
+        "expression": "trunc(123.456, 3)",
+        "result": 123.456
+      },
+      {
+        "expression": "trunc(123.456, 10)",
+        "result": 123.456
+      },
+      { "expression": "trunc(123.456, -1)", "result": 120 },
+      { "expression": "trunc(123.456, -2)", "result": 100 },
+      { "expression": "trunc(123.456, -3)", "result": 0 },
+      { "expression": "trunc(123.456, -100)", "result": 0 },
+      {
+        "expression": "trunc(-123.456, 2)",
+        "result": -123.45
+      },
+      { "expression": "trunc(-123.456, -1)", "result": -120 },
+      {
+        "data": "'purchase-order'",
+        "expression": "trunc(items[0].price, 1)",
+        "result": 3.2
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "trunc(items[0].price, missing)",
+        "result": 3
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "trunc(missing, 1)",
+        "result": 0
+      },
+      {
+        "expression": "fromCodePoint(13055)",
+        "result": "㋿"
+      },
+      { "expression": "fromCodePoint(9)", "result": "\t" },
+      {
+        "expression": "fromCodePoint(123123123)",
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "fromCodePoint(9.123)",
+        "result": "\t"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "fromCodePoint(missing)",
+        "result": "\u0000"
+      },
+      { "expression": "codePoint(\"\\t\")", "result": 9 },
+      { "expression": "codePoint(\"㋿\")", "result": 13055 },
+      {
+        "expression": "codePoint(\"㋿abc\")",
+        "result": 13055
+      },
+      { "expression": "codePoint(\"\")", "result": null },
+      {
+        "data": "'purchase-order'",
+        "expression": "codePoint(missing)",
+        "result": null
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "codePoint(address.street)",
+        "result": 49
+      },
+      {
+        "expression": "datetime(1970,1,1) | [year(@), month(@), day(@)]",
+        "result": [1970, 1, 1]
+      },
+      {
+        "expression": "datetime(\"1970\",1,1) | [year(@), month(@), day(@)]",
+        "result": [1970, 1, 1]
+      },
+      {
+        "expression": "datetime(1969,12,31) | [year(@), month(@), day(@)]",
+        "result": [1969, 12, 31]
+      },
+      {
+        "expression": "datetime(2020,2,29) | [year(@), month(@), day(@)]",
+        "result": [2020, 2, 29]
+      },
+      {
+        "expression": "datetime(2020,3,1) | [year(@), month(@), day(@)]",
+        "result": [2020, 3, 1]
+      },
+      {
+        "data": "datetime",
+        "expression": "datetime(epoch.year, epoch.month, epoch.date) | [year(@), month(@), day(@)]",
+        "result": [1970, 1, 1]
+      },
+      {
+        "expression": "datetime(1970,1,1) | day(@)",
+        "result": 1
+      },
+      {
+        "expression": "datetime(1970,1,1,13,12,11,0) | {h: hour(@), m: minute(@), s: second(@), ms: mod(@ * 24 * 60 * 60 * 100, 1000)}",
+        "result": { "h": 13, "m": 12, "s": 11, "ms": 100 }
+      },
+      {
+        "expression": "datetime(1970,1)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "day(datetime(1970, 1, 1))",
+        "result": 1
+      },
+      {
+        "expression": "day(datetime(1970, 1, 2, 12))",
+        "result": 2
+      },
+      {
+        "expression": "day(_localDate(\"1970-01-01\"))",
+        "result": 1
+      },
+      {
+        "expression": "datetime(1970,1,1) | month(@)",
+        "result": 1
+      },
+      {
+        "expression": "datetime(2020,2,29) | month(@)",
+        "result": 2
+      },
+      {
+        "expression": "datetime(2020,2,30) | month(@)",
+        "result": 3
+      },
+      {
+        "data": "datetime",
+        "expression": "month(_localDate(\"1970-01-01\"))",
+        "result": 1
+      },
+      {
+        "expression": "datetime(1970,1,1) | year(@)",
+        "result": 1970
+      },
+      {
+        "expression": "datetime(1969,1,1) | year(@)",
+        "result": 1969
+      },
+      {
+        "expression": "datetime(1969,1,1) | year(@)",
+        "result": 1969
+      },
+      {
+        "data": "datetime",
+        "expression": "year(_localDate(\"1970-01-01\"))",
+        "result": 1970
+      },
+      {
+        "expression": "time(0, 0, 0) | [hour(@), minute(@),  second(@)]",
+        "result": [0, 0, 0]
+      },
+      {
+        "expression": "time(6, 0, 0) | [hour(@), minute(@),  second(@)]",
+        "result": [6, 0, 0]
+      },
+      {
+        "expression": "time(\"6\", \"13\", \"14\") | [hour(@), minute(@),  second(@)]",
+        "result": [6, 13, 14]
+      },
+      {
+        "data": "datetime",
+        "expression": "time(noon.hour, noon.minute, noon.second) | [hour(@), minute(@),  second(@)]",
+        "result": [12, 0, 0]
+      },
+      {
+        "expression": "time(-10, 7, 61).[hour(@), minute(@), second(@)].map(@, &if(@ < 10, \"0\" & @, @)).join(@, \":\")",
+        "result": "14:08:01"
+      },
+      { "expression": "hour(time(6))", "result": 6 },
+      { "expression": "hour(time(80, 0, 0))", "result": 8 },
+      { "expression": "hour(time(32, 0, 0))", "result": 8 },
+      {
+        "expression": "hour(datetime(2008,5,23,12, 0, 0))",
+        "result": 12
+      },
+      { "expression": "hour(time(11, 0, 0))", "result": 11 },
+      {
+        "expression": "minute(datetime(1970, 1, 1, 0, 4))",
+        "result": 4
+      },
+      {
+        "expression": "second(datetime(1970, 1, 1, 0, 0, 3))",
+        "result": 3
+      },
+      {
+        "data": "datetime",
+        "expression": "hour(datetime(1970, 1, 1, 12))",
+        "result": 12
+      },
+      {
+        "expression": "minute(datetime(1970, 1, 1, 0, 54))",
+        "result": 54
+      },
+      {
+        "expression": "minute(datetime(1970, 1, 4, 0, 54))",
+        "result": 54
+      },
+      {
+        "data": "datetime",
+        "expression": "minute(datetime(1970, 1, 1, 12))",
+        "result": 0
+      },
+      { "expression": "second(0.000625)", "result": 54 },
+      { "expression": "second(3.000625)", "result": 54 },
+      {
+        "data": "datetime",
+        "expression": "second(datetime(1970, 1, 1, 12))",
+        "result": 0
+      },
+      {
+        "expression": "weekday(datetime(1970, 1, 1))",
+        "result": 5
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-01\"))",
+        "result": 5
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-03\"))",
+        "result": 7
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1969-12-27\"))",
+        "result": 7
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-04\"))",
+        "result": 1
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-04\"), 1)",
+        "result": 1
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-04\"), 2)",
+        "result": 7
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-05\"), 2)",
+        "result": 1
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-04\"), 3)",
+        "result": 6
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-01\"), 4)",
+        "error": "FunctionError"
+      },
+      {
+        "data": "datetime",
+        "expression": "weekday(_localDate(\"1970-01-01\"), -1)",
+        "error": "FunctionError"
+      },
+      {
+        "data": "casefold",
+        "expression": "casefold(notfound)",
+        "result": ""
+      },
+      {
+        "data": "casefold.test1",
+        "expression": "casefold(str1) == casefold(str2)",
+        "language": "el-GR",
+        "result": true
+      },
+      {
+        "data": "casefold.test2",
+        "expression": "casefold(str1) == casefold(str2)",
+        "language": "de-DE",
+        "result": true
+      },
+      {
+        "data": "casefold.test3",
+        "expression": "casefold(str1) == casefold(str2)",
+        "language": "tr-TR",
+        "result": true
+      },
+      {
+        "data": "casefold.test4",
+        "expression": "casefold(str1) == casefold(str2)",
+        "language": "tr-TR",
+        "result": true
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "address.valueOf",
+        "result": null
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "items[length(@)-1].desc",
+        "error": "SyntaxError"
+      },
+      {
+        "expression": "entries(`{\"a\": 1, \"b\": 2}`)",
+        "result": [
+          ["a", 1],
+          ["b", 2]
+        ]
+      },
+      {
+        "expression": "entries([\"a\", 1])",
+        "result": [
+          ["0", "a"],
+          ["1", 1]
+        ]
+      },
+      { "expression": "entries(`null`)", "error": "TypeError" },
+      {
+        "data": "'purchase-order'",
+        "expression": "entries(address.country)",
+        "result": [["0", "USA"]]
+      },
+      {
+        "expression": "fromEntries([[\"a\", 1], [\"b\", 2, 4], [\"a\", 3]])",
+        "error": "TypeError"
+      },
+      {
+        "expression": "fromEntries([[\"a\", 1], [\"b\", 2], [\"a\", 3]])",
+        "result": {"a": 3, "b": 2}
+      },
+      {
+        "expression": "fromEntries(`null`)",
+        "error": "TypeError"
+      },
+      {
+        "expression": "fromEntries(`[]`)",
+        "result": {}
+      },
+      {
+        "expression": "fromEntries(`[\"a\", 1]`)",
+        "error": "TypeError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "entries(address)",
+        "result": [
+          ["street", "123 Oak Street"],
+          ["city", "San Jose"],
+          ["state", "California"],
+          ["country", "USA"]
+        ]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "fromEntries(entries(address))",
+        "result": {
+          "street": "123 Oak Street",
+          "city": "San Jose",
+          "state": "California",
+          "country": "USA"
+        }
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "fromEntries(address.street)",
+        "error": "TypeError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "fromEntries(items)",
+        "error": "TypeError"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "split(address.street, \" \")",
+        "result": ["123", "Oak", "Street"]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "split(address.country, \"\")",
+        "result": ["U", "S", "A"]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "split(address.country, `null`)",
+        "result": ["U","S","A"]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "split(no, where)",
+        "result": []
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "split(address.street, \",\")",
+        "result": ["123 Oak Street"]
+      },
+      {
+        "expression": "null/0",
+        "was": null,
+        "error": "EvaluationError"
+      },
+      {
+        "expression": "4/0",
+        "was": null,
+        "error": "EvaluationError"
+      },
+      { "expression": "4/\"b\"", "error": "TypeError" },
+      {
+        "expression": "12.222 | round(@ * 2, 2)",
+        "result": 24.44
+      },
+      {
+        "data": "[1,2,3,4]",
+        "expression": "map(@, &(@ + 1))",
+        "result": [2, 3, 4, 5]
+      },
+      {
+        "data": "[1,2,3,4]",
+        "expression": "map(@, &@ - 1)",
+        "result": [0, 1, 2, 3]
+      },
+      {
+        "data": "'purchase-order'.items[*].quantity",
+        "expression": "@ + 2",
+        "result": [4, 5]
+      },
+      { "expression": "`[]` & `[\"s\"]`", "result": ["s"] },
+      {
+        "expression": "`[100,100]` / `[50]`",
+        "error": "EvaluationError"
+      },
+      {
+        "data": "'purchase-order'.items[0].quantity",
+        "expression": "mod(@, 2)",
+        "result": 0
+      },
+      { "expression": "mod(7, 4)", "result": 3 },
+      { "expression": "mod(7, 0)", "error": "EvaluationError" },
+      {
+        "data": "'purchase-order'.items[*]",
+        "expression": "[].price ~ [].quantity ~ [].desc",
+        "result": [3.23, 1.34, 2, 3, "pens", "pencils"]
+      },
+      {
+        "data": "'purchase-order'.items[*]",
+        "expression": "1 ~ [].quantity ~ \"4\"",
+        "result": [1, 2, 3, "4"]
+      },
+      {
+        "expression": "[{a:1}, {b:2}, 3] ~ [[4,5],6]",
+        "result": [{ "a": 1 }, { "b": 2 }, 3, [4, 5], 6]
+      },
+      {
+        "data": "'purchase-order'.items[*]",
+        "expression": "[].quantity ~ {a: 4}",
+        "error": "TypeError"
+      },
+      {
+        "data": "`{\"root\": {\"valueOf\": 42}}`",
+        "expression": "type(root)",
+        "result": "object"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-20'), d2: _localDate(datedif.'2022-06-21')}",
+        "expression": "datedif(d1, d2, \"d\")",
+        "result": 1
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-06-20')}",
+        "expression": "datedif(d1, d2, \"d\")",
+        "error": "FunctionError"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-07-21')}",
+        "expression": "datedif(d1, d2, \"d\")",
+        "result": 30
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2023-06-20')}",
+        "expression": "datedif(d1, d2, \"d\")",
+        "result": 364
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"d\")",
+        "result": 2963
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-20'), d2: _localDate(datedif.'2022-06-21')}",
+        "expression": "datedif(d1, d2, \"y\")",
+        "result": 0
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-07-21')}",
+        "expression": "datedif(d1, d2, \"y\")",
+        "result": 0
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2023-06-20')}",
+        "expression": "datedif(d1, d2, \"y\")",
+        "result": 0
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"y\")",
+        "result": 7
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-20'), d2: _localDate(datedif.'2022-06-21')}",
+        "expression": "datedif(d1, d2, \"m\")",
+        "result": 0
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-07-21')}",
+        "expression": "datedif(d1, d2, \"m\")",
+        "result": 1
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2023-06-20')}",
+        "expression": "datedif(d1, d2, \"m\")",
+        "result": 11
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"m\")",
+        "result": 85
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-20'), d2: _localDate(datedif.'2022-06-21')}",
+        "expression": "datedif(d1, d2, \"ym\")",
+        "result": 0
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-07-21')}",
+        "expression": "datedif(d1, d2, \"ym\")",
+        "result": 1
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2023-06-20')}",
+        "expression": "datedif(d1, d2, \"ym\")",
+        "result": 11
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"ym\")",
+        "result": 1
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-20'), d2: _localDate(datedif.'2022-06-21')}",
+        "expression": "datedif(d1, d2, \"yd\")",
+        "result": 1
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2022-07-21')}",
+        "expression": "datedif(d1, d2, \"yd\")",
+        "result": 30
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21'), d2: _localDate(datedif.'2023-06-20')}",
+        "expression": "datedif(d1, d2, \"yd\")",
+        "result": 364
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"yd\")",
+        "result": 41
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-21'), d2: _localDate(datedif.'2030-08-01')}",
+        "expression": "datedif(d1, d2, \"yy\")",
+        "error": "FunctionError"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-06-21')}",
+        "expression": "eomonth(d1, 0) | year(@) & \"-\" & month(@) & \"-\" & day(@)",
+        "result": "2022-6-30"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2022-07-21')}",
+        "expression": "eomonth(d1, -2) | year(@) & \"-\" & month(@) & \"-\" & day(@)",
+        "result": "2022-5-31"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2023-06-20')}",
+        "expression": "eomonth(d1, 13) | year(@) & \"-\" & month(@) & \"-\" & day(@)",
+        "result": "2024-7-31"
+      },
+      {
+        "data": "{d1: _localDate(datedif.'2030-08-01')}",
+        "expression": "eomonth(d1, 18) | year(@) & \"-\" & month(@) & \"-\" & day(@)",
+        "result": "2032-2-29"
+      },
+      {
+        "expression": "zip([1,2,3], [4,5,6])",
+        "result": [
+          [1, 4],
+          [2, 5],
+          [3, 6]
+        ]
+      },
+      {
+        "expression": "zip([1,2,3],[4,5],[7,8,9])",
+        "result": [
+          [1, 4, 7],
+          [2, 5, 8]
+        ]
+      },
+      { "expression": "zip([1,2,3])", "result": [[1], [2], [3]] },
+      { "expression": "zip(`[]`)", "result": [] },
+      { "expression": "null() == `null`", "result": true },
+      { "expression": "null() == notfound", "result": true },
+      {
+        "data": "'purchase-order'",
+        "expression": "unique(split(address.state, \"\"))",
+        "result": ["C", "a", "l", "i", "f", "o", "r", "n"]
+      },
+      {
+        "expression": "unique([[1,2,3],[1,2,3,4]])",
+        "result": [[1,2,3],[1,2,3,4]]
+      },
+      {
+        "expression": "unique([{a: 12}, {a: 12, b:13}])",
+        "result": [{"a": 12}, {"a": 12, "b":13}]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "unique([address.country,address.country])",
+        "result": ["USA"]
+      },
+      {
+        "fieldsOnly": true,
+        "data": "'purchase-order'",
+        "expression": "unique([address.country, address.country])|[0].$name",
+        "result": "country"
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "unique([keys(items[0]),keys(items[1])][])",
+        "result": ["desc", "quantity", "price", "subtotal"]
+      },
+      {
+        "expression": "unique([`null`, `false`, `true`, 1, \"1\", [1, 2, 3], {a: 1}, `null`, `false`, `true`, 1, \"1\", [1, 2, 3], {a: 1}])",
+        "result": [null, false, true, 1, "1", [1, 2, 3], { "a": 1 }]
+      },
+      {
+        "expression": "deepScan('purchase-order', 1)",
+        "result": [
+          { "desc": "pencils", "quantity": 3, "price": 1.34, "subtotal": 4.02 }
+        ]
+      },
+      {
+        "expression": "deepScan(null(), \"desc\")",
+        "result": []
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "deepScan(address, \"foo\")",
+        "result": []
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "deepScan([{a1: [address]}, {a2: [address]}], \"street\")",
+        "result": ["123 Oak Street", "123 Oak Street"]
+      },
+      {
+        "expression": "deepScan({'1.1': [{'1.1': 22}, 33, {'1.1': 55}]}, 1.1)",
+        "result": [33]
+      },
+      {
+        "expression": "deepScan({'1.1': [{'1.1': 22}, 33, {'1.1': 55}]}, \"1.1\")",
+        "result": [[{"1.1": 22},33,{"1.1": 55}],22,55]
+      },
+      {
+        "data": "'purchase-order'",
+        "expression": "search(\"?Oak?\", address.street)",
+        "result": [3, " Oak "]
+      },
+      {
+        "expression": "search(\".\\\\\\\\^$(+{]\", \"pad.\\\\^$(+{]\")",
+        "result": [3, ".\\^$(+{]"]
+      },
+      { "expression": "search(\"a?b\", \"bcd\")", "result": [] },
+      { "expression": "search(\"*\", \"bcd\")", "result": [0, ""] },
+      { "expression": "search(\"*\", \"\")", "result": [] },
+      { "expression": "search(\"\", \"bcd\")", "result": [0, ""] },
+      { "expression": "search(\"\", \"\")", "result": [] },
+      {
+        "expression": "search(\"a\\\\\\\\c\", \"pada\\\\c\")",
+        "result": [3, "a\\c"]
+      },
+      {
+        "expression": "search(\"a\\\\\\\\\\\\?c\", \"pada\\\\?c\", 3)",
+        "result": [3, "a\\?c"]
+      },
+      {
+        "expression": "search(\"a\\\\?\\\\?c\", \"pada??c\", 2)",
+        "result": [3, "a??c"]
+      },
+      {
+        "expression": "search(\"a\\\\*\\\\*c\", \"pada**c\")",
+        "result": [3, "a**c"]
+      },
+      {
+        "expression": "search(\"a*c??c\", \"padacabc\")",
+        "result": [1, "adacabc"]
+      },
+      {
+        "expression": "search(\"a*c*c\", \"padacabc\")",
+        "result": [1, "adacabc"]
+      },
+      {
+        "expression": "search(\"a*c\", \"padacabc\", 2)",
+        "result": [3, "ac"]
+      },
+      {
+        "expression": "search(\"a?c\", \"padacabc\")",
+        "result": [5, "abc"]
+      },
+      {
+        "expression": "search(\")]\", \"pad[()]\")",
+        "result": [5, ")]"]
+      },
+      {
+        "expression": "search(\".\\\\\\\\^$(+{]\", \"pada.\\\\^$(+{]b\")",
+        "result": [4, ".\\^$(+{]"]
+      },
+      { "expression": "search(\"\", null)", "result": [] },
+      { "expression": "search(\"a**a\", \"pada\")", "result": [1, "ada"]},
+      { "expression": "search(\"a*?a\", \"pada\")", "result": [1, "ada"]},
+      {
+        "data": {"array": ["a", "b", "c", "d", "a", "b"]},
+        "expression": "_summarize(array)",
+        "result": { "a": 2, "b": 2, "c": 1, "d": 1 }
+      },
+      {
+        "expression": "register(\"_summarize\", &42)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "merge(register(\"_p1\", &42), register(\"_p2\", &43), {r: _p1() + _p2()})",
+        "result": { "r": 85 }
+      },
+      {
+        "expression": "register(\"_identity\", &@) || _identity()",
+        "result": null
+      },
+      {
+        "expression": "registerWithParams(\"Identity\", &if (length(@) = 0, null(), @)) || Identity()",
+        "result": null
+      },
+      {
+        "expression": "register(\"\", &42)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "register(\"do-it\", &42)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "[register(\"sum\", &21 + 21), sum()]",
+        "error": "FunctionError"
+      },
+      { "expression": "floor(random())", "result": 0 },
+      { "expression": "ceil(random())", "result": 1 },
+      { "expression": "random(2)", "error": "FunctionError" },
+      { "expression": "$", "result": 42 },
+      { "expression": "$$", "result": 43 },
+      { "expression": "2--1", "result": 3 },
+      { "expression": "2---1", "result": 1 },
+      { "expression": "2----1", "result": 3 },
+      {
+        "data": "`{\"0\": \"zero\",\"1\": \"one\"}`",
+        "expression": "@[0] ~ @[\"1\"]",
+        "error": "SyntaxError"
+      },
+      {
+        "data": "`{\"0\": \"zero\",\"1\": \"one\"}`",
+        "expression": "[\"0\"]",
+        "result": ["0"]
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "datetime(1990.999, two, two, two, two, two, two) | [year(@), month(@), day(@), hour(@), minute(@), second(@), millisecond(@)].join(@, \":\")",
+        "result": "1990:2:2:2:2:2:2"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "eomonth(datetime(2023, 12, two), two) | [month(@), day(@)]",
+        "result": [2, 29]
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "find(\"M\", \"abMcdM\", two)",
+        "result": 2
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "fromCodePoint(63 + two)",
+        "result": "A"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "hasProperty([5,6,7], two)",
+        "result": true
+      },
+      {
+        "data": "`{\"two\": 2}`",
+        "expression": "hasProperty({two: 2}, two)",
+        "error": "TypeError"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "left(\"12345\", two)",
+        "result": "12"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "mid(\"12345\", toString(two), toString(two))",
+        "result": "34"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "replace(\"12345\", two, two, \"43\")",
+        "result": "12435"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "rept(\"ab\", two)",
+        "result": "abab"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "right(\"12345\", two)",
+        "result": "45"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "round(45.6789, two)",
+        "result": 45.68
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "search(\"a?a\", \"0a1a2a3a\", two)",
+        "result": [3, "a2a"]
+      },
+      {
+        "expression": "search(\"a?a\", \"0a1a2a3a\", -2)",
+        "error": "FunctionError"
+      },
+      {
+        "expression": "search(\"A\", \"🙂A🙃\")",
+        "result": [1, "A"]
+      },
+      {
+        "expression": "search(\"??🙃C\", \"A🙂B🙃C\")",
+        "result": [1, "🙂B🙃C"]
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "substitute(\"aaaaaa\", \"a\", \"b\", two)",
+        "result": "aabaaa"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "time(two, two, two).[hour(@),minute(@),second(@)].join(@, \":\")",
+        "result": "2:2:2"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "toNumber(\"11\", two)",
+        "result": 3
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "toString(`{\"foo\":42}`, two)",
+        "result": "{\n  \"foo\": 42\n}"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "trunc(8.916, two)",
+        "result": 8.91
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "value([1,2,3,4,5], two)",
+        "result": 3
+      },
+      {
+        "expression": "value(nullvalue, 2)",
+        "result": null
+      },
+      {
+        "expression": "value(nullvalue, \"n\")",
+        "result": null
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "value({a: 42}, two)",
+        "error": "TypeError"
+      },
+      {
+        "data": "`{\"two\": 2.6}`",
+        "expression": "weekday(datetime(2006,5,21), two)",
+        "result": 7
+      }
+    ]
+  }
+]

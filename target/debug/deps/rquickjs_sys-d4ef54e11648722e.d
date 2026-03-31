@@ -1,0 +1,13 @@
+/Users/lrosenth/Development/json-formula-rs/target/debug/deps/rquickjs_sys-d4ef54e11648722e.d: /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/lib.rs /Users/lrosenth/Development/json-formula-rs/target/debug/build/rquickjs-sys-40cd12ae39d71106/out/bindings.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/bindings/aarch64-apple-darwin.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/ptr_64.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/common.rs
+
+/Users/lrosenth/Development/json-formula-rs/target/debug/deps/librquickjs_sys-d4ef54e11648722e.rlib: /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/lib.rs /Users/lrosenth/Development/json-formula-rs/target/debug/build/rquickjs-sys-40cd12ae39d71106/out/bindings.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/bindings/aarch64-apple-darwin.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/ptr_64.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/common.rs
+
+/Users/lrosenth/Development/json-formula-rs/target/debug/deps/librquickjs_sys-d4ef54e11648722e.rmeta: /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/lib.rs /Users/lrosenth/Development/json-formula-rs/target/debug/build/rquickjs-sys-40cd12ae39d71106/out/bindings.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/bindings/aarch64-apple-darwin.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/ptr_64.rs /Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/common.rs
+
+/Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/lib.rs:
+/Users/lrosenth/Development/json-formula-rs/target/debug/build/rquickjs-sys-40cd12ae39d71106/out/bindings.rs:
+/Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/bindings/aarch64-apple-darwin.rs:
+/Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/ptr_64.rs:
+/Users/lrosenth/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rquickjs-sys-0.10.0/src/inlines/common.rs:
+
+# env-dep:OUT_DIR=/Users/lrosenth/Development/json-formula-rs/target/debug/build/rquickjs-sys-40cd12ae39d71106/out
