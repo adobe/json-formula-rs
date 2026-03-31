@@ -20,6 +20,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+## Interactive Testbed
+
+A desktop GUI testbed is available in the `testbed/` directory. Built with [Tauri](https://tauri.app/), it provides a four-panel interface for interactively exploring expressions:
+
+- **Input JSON** — paste or type your JSON data (syntax highlighted)
+- **Expression** — enter a json-formula expression
+- **Result** — evaluated output (syntax highlighted)
+- **Debug Info** — step-by-step evaluation trace
+
+Press **Enter** or **Tab** to trigger evaluation. Tab also advances focus between fields.
+
+### Running the testbed
+
+```bash
+cd testbed
+cargo tauri dev
+```
+
+> Requires the [Tauri CLI](https://tauri.app/v1/guides/getting-started/prerequisites) and a Rust toolchain.
+
 ## Testing
 
 The official json-formula JSON test fixtures are stored under `tests/fixtures` and are executed
