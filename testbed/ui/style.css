@@ -78,8 +78,9 @@ textarea.error {
   overflow: hidden;
 }
 
-/* Prevent the hidden CM textarea from participating in flex layout */
-.editor-wrap textarea {
+/* Hide only the original textarea that CM wraps (direct child).
+   Using > to avoid hiding CM's own internal textarea it uses for keyboard input. */
+.editor-wrap > textarea {
   display: none;
 }
 
