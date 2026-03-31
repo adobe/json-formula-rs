@@ -51,11 +51,11 @@ async function evaluate() {
 }
 
 function onKeyDown(event) {
-  // Enter and Tab both trigger evaluation. Tab's default (focus-next) is intentionally
-  // suppressed so the key acts as "evaluate" rather than leaving the field.
-  if (event.key === 'Enter' || event.key === 'Tab') {
+  if (event.key === 'Enter') {
     event.preventDefault();
     evaluate();
+  } else if (event.key === 'Tab') {
+    evaluate(); // fires evaluation; focus-next is NOT suppressed
   }
 }
 
