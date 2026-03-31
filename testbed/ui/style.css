@@ -1,0 +1,104 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: monospace;
+  background: #fff;
+  color: #000;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.columns {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+label {
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+textarea {
+  flex: 1;
+  font-family: monospace;
+  font-size: 12pt;
+  border: 1px solid #ccc;
+  padding: 6px;
+  resize: vertical;
+}
+
+textarea:focus-visible {
+  outline: none;
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+textarea[readonly] {
+  background: #fafafa;
+  resize: none;
+}
+
+textarea.error {
+  color: red;
+}
+
+/* ── CodeMirror editors ─────────────────────────────────────── */
+
+/* Wrapper takes the flex slot the textarea used to occupy */
+.editor-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Hide only the original textarea that CM wraps (direct child).
+   Using > to avoid hiding CM's own internal textarea it uses for keyboard input. */
+.editor-wrap > textarea {
+  display: none;
+}
+
+/* CM editor fills the wrapper */
+.editor-wrap .CodeMirror {
+  height: 100%;
+  font-family: monospace;
+  font-size: 12pt;
+  border: 1px solid #ccc;
+}
+
+/* Focus ring matches existing textarea:focus-visible style */
+.editor-wrap .CodeMirror-focused {
+  border-color: #0078d4;
+  box-shadow: 0 0 0 1px #0078d4;
+}
+
+/* Error state: red text on the result editor */
+.editor-wrap.error .CodeMirror {
+  color: red;
+}

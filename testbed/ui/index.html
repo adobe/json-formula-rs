@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>json-formula Testing</title>
+  <link rel="stylesheet" href="vendor/codemirror.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>json-formula Testing</h1>
+  <div class="columns">
+    <div class="column">
+      <label for="json-input">Input JSON</label>
+      <div class="editor-wrap">
+        <textarea id="json-input" spellcheck="false" placeholder='{ "key": "value" }'></textarea>
+      </div>
+    </div>
+    <div class="column">
+      <label for="expression-input">Expression</label>
+      <textarea id="expression-input" spellcheck="false" placeholder="key"></textarea>
+    </div>
+    <div class="column">
+      <label for="result">Result</label>
+      <div class="editor-wrap">
+        <textarea id="result" readonly></textarea>
+      </div>
+    </div>
+    <div class="column">
+      <label for="debug">Debug Info</label>
+      <textarea id="debug" readonly></textarea>
+    </div>
+  </div>
+  <script src="vendor/codemirror.min.js"></script>
+  <script src="vendor/javascript.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
