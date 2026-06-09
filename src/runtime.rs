@@ -139,6 +139,38 @@ impl JsonFormula {
         self.runtime.functions.insert(name.to_string(), entry);
         Ok(())
     }
+
+    /// Registers a custom function that evaluates the given expression body with
+    /// variadic arguments packed into an array. When called with N arguments,
+    /// the body is evaluated with `@` set to `[arg0, arg1, ..., argN-1]`. When
+    /// called with no arguments, `@` is set to the current evaluation context
+    /// (`data`), matching the zero-argument behaviour of `register_expression`.
+    pub fn register_expression_with_params(
+        &mut self,
+        name: &str,
+        body: &str,
+    ) -> Result<(), JsonFormulaError> {
+        let ast = self.compile(body, &[])?;
+        let body_ast = ast.clone();
+        let entry = FunctionEntry {
+            func: Box::new(move |_runtime, args, data, interp| {
+                let ctx = if args.is_empty() {
+                    data.clone()
+                } else {
+                    JfValue::Array(args)
+                };
+                interp.visit(&body_ast, &ctx)
+            }),
+            signature: vec![SignatureArg {
+                types: vec![DataType::Any],
+                optional: true,
+                variadic: true,
+            }],
+            expref: Some(ast),
+        };
+        self.runtime.functions.insert(name.to_string(), entry);
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
