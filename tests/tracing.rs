@@ -1,4 +1,4 @@
-use json_formula_rs::{JsonFormula, SubExprTrace};
+use json_formula_rs::SubExprTrace;
 use serde_json::json;
 
 #[test]
