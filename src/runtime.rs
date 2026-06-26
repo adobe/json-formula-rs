@@ -29,6 +29,13 @@ pub struct EvalOutcome {
     pub error: Option<JsonFormulaError>,
 }
 
+#[derive(Debug, Clone)]
+pub struct SubExprTrace {
+    pub expr: String,
+    pub value: serde_json::Value,
+    pub children: Vec<SubExprTrace>,
+}
+
 pub struct JsonFormula {
     runtime: Runtime,
     debug: Vec<String>,

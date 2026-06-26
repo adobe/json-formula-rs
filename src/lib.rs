@@ -23,4 +23,4 @@ mod types;
 mod utils;
 
 pub use crate::errors::{JsonFormulaError, JsonFormulaErrorKind};
-pub use crate::runtime::{EvalOutcome, JsonFormula};
+pub use crate::runtime::{EvalOutcome, JsonFormula, SubExprTrace};
