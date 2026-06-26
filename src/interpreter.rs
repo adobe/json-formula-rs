@@ -48,12 +48,14 @@ impl Interpreter {
         self.trace_stack = Some(vec![Vec::new()]);
     }
 
+    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_push_layer(&mut self) {
         if let Some(stack) = &mut self.trace_stack {
             stack.push(Vec::new());
         }
     }
 
+    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_pop_layer(&mut self) -> Vec<crate::runtime::SubExprTrace> {
         if let Some(stack) = &mut self.trace_stack {
             stack.pop().unwrap_or_default()
@@ -62,6 +64,7 @@ impl Interpreter {
         }
     }
 
+    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_emit(&mut self, expr: String, value: &JfValue, children: Vec<crate::runtime::SubExprTrace>) {
         if let Some(stack) = &mut self.trace_stack {
             if let Some(parent_layer) = stack.last_mut() {
