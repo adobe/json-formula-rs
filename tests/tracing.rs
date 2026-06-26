@@ -1,5 +1,24 @@
-use json_formula_rs::SubExprTrace;
+use json_formula_rs::{JsonFormula, SubExprTrace};
 use serde_json::json;
+
+#[test]
+fn test_evaluate_with_trace_basic() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5, "y": 0});
+    let result = jf.evaluate_with_trace(
+        "(x > 1) && (y > 2)",
+        &data,
+        None,
+        None,
+        false,
+    );
+    assert!(result.is_ok());
+    let (value, trace) = result.unwrap();
+    assert_eq!(value, json!(false));
+    // Root trace should be the && expression — the fallback path provides it
+    assert!(trace.expr.contains("&&"));
+    assert_eq!(trace.value, json!(false));
+}
 
 #[test]
 fn test_sub_expr_trace_type_exists() {

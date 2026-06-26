@@ -24,6 +24,7 @@ pub struct Interpreter {
     pub language: String,
     debug: *mut Vec<String>,
     debug_chain_start: Option<String>,
+    trace_stack: Option<Vec<Vec<crate::runtime::SubExprTrace>>>,
 }
 
 impl Interpreter {
@@ -39,7 +40,47 @@ impl Interpreter {
             language: language.to_string(),
             debug,
             debug_chain_start: None,
+            trace_stack: None,
         }
+    }
+
+    pub fn enable_tracing(&mut self) {
+        self.trace_stack = Some(vec![Vec::new()]);
+    }
+
+    fn trace_push_layer(&mut self) {
+        if let Some(stack) = &mut self.trace_stack {
+            stack.push(Vec::new());
+        }
+    }
+
+    fn trace_pop_layer(&mut self) -> Vec<crate::runtime::SubExprTrace> {
+        if let Some(stack) = &mut self.trace_stack {
+            stack.pop().unwrap_or_default()
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn trace_emit(&mut self, expr: String, value: &JfValue, children: Vec<crate::runtime::SubExprTrace>) {
+        if let Some(stack) = &mut self.trace_stack {
+            if let Some(parent_layer) = stack.last_mut() {
+                parent_layer.push(crate::runtime::SubExprTrace {
+                    expr,
+                    value: value.to_json(),
+                    children,
+                });
+            }
+        }
+    }
+
+    pub fn take_root_trace(&mut self) -> Option<crate::runtime::SubExprTrace> {
+        if let Some(stack) = &mut self.trace_stack {
+            if let Some(root_layer) = stack.last_mut() {
+                return root_layer.pop();
+            }
+        }
+        None
     }
 
     pub fn search(&mut self, node: &AstNode, value: &JfValue) -> Result<JfValue, JsonFormulaError> {
