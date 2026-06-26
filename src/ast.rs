@@ -105,6 +105,12 @@ impl AstNode {
         }
     }
 
+    /// Reconstruct a human-readable expression string from this AST node.
+    ///
+    /// This method is intended for display and debugging only — it is NOT a
+    /// lossless round-trip serializer. In particular, `AstNode::Identity` and
+    /// `AstNode::Current` both render as `"@"` since they are semantically
+    /// equivalent in display context.
     pub fn to_expr_string(&self) -> String {
         match self {
             AstNode::Identity => "@".to_string(),
@@ -120,10 +126,10 @@ impl AstNode {
             AstNode::NotExpression(inner) => format!("!{}", inner.expr_str_paren()),
             AstNode::UnaryMinusExpression(inner) => format!("-{}", inner.expr_str_paren()),
             AstNode::AndExpression(l, r) => {
-                format!("{} && {}", l.to_expr_string(), r.to_expr_string())
+                format!("{} && {}", l.expr_str_paren(), r.expr_str_paren())
             }
             AstNode::OrExpression(l, r) => {
-                format!("{} || {}", l.to_expr_string(), r.to_expr_string())
+                format!("{} || {}", l.expr_str_paren(), r.expr_str_paren())
             }
             AstNode::AddExpression(l, r) => {
                 format!("{} + {}", l.expr_str_paren(), r.expr_str_paren())
