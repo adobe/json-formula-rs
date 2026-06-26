@@ -93,7 +93,11 @@ impl Interpreter {
                 self.field(name, value)
             }
             AstNode::ChainedExpression(children) => {
-                let mut result = self.visit(&children[0], value)?;
+                self.trace_push_layer();
+                let mut result = match self.visit(&children[0], value) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
                 if let AstNode::Identifier(name) = &children[0] {
                     self.debug_chain_start = Some(name.clone());
                 }
@@ -107,6 +111,8 @@ impl Interpreter {
                                 | AstNode::ArrayExpression(_)
                         )
                     {
+                        let children_trace = self.trace_pop_layer();
+                        self.trace_emit(node.to_expr_string(), &JfValue::Null, children_trace);
                         return Ok(JfValue::Null);
                     }
                     let child = &children[idx];
@@ -136,16 +142,25 @@ impl Interpreter {
                         if let JfValue::Array(items) = result {
                             let mut projected = Vec::new();
                             for item in items {
-                                projected.push(self.visit(child, &item)?);
+                                match self.visit(child, &item) {
+                                    Ok(v) => projected.push(v),
+                                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                                }
                             }
                             result = JfValue::Array(projected);
                             projecting = true;
                         } else {
-                            result = self.visit(child, &result)?;
+                            result = match self.visit(child, &result) {
+                                Ok(v) => v,
+                                Err(e) => { self.trace_pop_layer(); return Err(e); }
+                            };
                             projecting = false;
                         }
                     } else {
-                        result = self.visit(child, &result)?;
+                        result = match self.visit(child, &result) {
+                            Ok(v) => v,
+                            Err(e) => { self.trace_pop_layer(); return Err(e); }
+                        };
                         projecting = false;
                     }
                     if matches!(result, JfValue::Null) {
@@ -161,15 +176,29 @@ impl Interpreter {
                             })
                             .unwrap_or(false);
                         if !next_allows_null {
+                            let children_trace = self.trace_pop_layer();
+                            self.trace_emit(node.to_expr_string(), &JfValue::Null, children_trace);
                             return Ok(JfValue::Null);
                         }
                     }
                 }
+                let children_trace = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children_trace);
                 Ok(result)
             }
             AstNode::BracketExpression(left, right) => {
-                let base = self.visit(left, value)?;
-                self.visit(right, &base)
+                self.trace_push_layer();
+                let base = match self.visit(left, value) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
+                let result = match self.visit(right, &base) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::Index(expr) => {
                 let index = index_value(expr)?;
@@ -226,85 +255,133 @@ impl Interpreter {
                 }
             }
             AstNode::Projection { left, right, debug } => {
-                let base = self.visit(left, value)?;
-                if let JfValue::Array(items) = base {
+                self.trace_push_layer();
+                let base = match self.visit(left, value) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
+                let result = if let JfValue::Array(items) = base {
                     let mut collected = Vec::new();
+                    let saved_stack = self.trace_stack.take();
                     for item in items {
-                        collected.push(self.visit(right, &item)?);
+                        match self.visit(right, &item) {
+                            Ok(v) => collected.push(v),
+                            Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                        }
                     }
-                    Ok(JfValue::Array(collected))
+                    self.trace_stack = saved_stack;
+                    JfValue::Array(collected)
                 } else {
                     if debug.as_deref() == Some("Wildcard") {
                         self.debug_mut()
                             .push("Bracketed wildcards apply to arrays only".to_string());
                     }
-                    Ok(JfValue::Null)
-                }
+                    JfValue::Null
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::ValueProjection { left, right } => {
-                let projection = self.visit(left, value)?;
+                self.trace_push_layer();
+                let projection = match self.visit(left, value) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
                 let proj_value = get_value_of(&projection);
-                match proj_value {
+                let result = match proj_value {
                     JfValue::Object(map) => {
                         let mut collected = Vec::new();
+                        let saved_stack = self.trace_stack.take();
                         for val in map.values() {
-                            collected.push(self.visit(right, val)?);
+                            match self.visit(right, val) {
+                                Ok(v) => collected.push(v),
+                                Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                            }
                         }
-                        Ok(JfValue::Array(collected))
+                        self.trace_stack = saved_stack;
+                        JfValue::Array(collected)
                     }
                     _ => {
                         self.debug_mut()
                             .push("Chained wildcards apply to objects only".to_string());
-                        Ok(JfValue::Null)
+                        JfValue::Null
                     }
-                }
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::FilterProjection {
                 left,
                 right,
                 condition,
             } => {
-                let base = self.visit(left, value)?;
-                if let JfValue::Array(items) = base {
+                self.trace_push_layer();
+                let base = match self.visit(left, value) {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
+                let result = if let JfValue::Array(items) = base {
                     if matches!(&**left, AstNode::ValueProjection { .. }) {
                         let mut projected = Vec::with_capacity(items.len());
+                        let saved_stack = self.trace_stack.take();
                         for item in items {
                             if let JfValue::Array(inner) = item {
                                 let mut filtered = Vec::new();
                                 for inner_item in inner {
-                                    let matched = self.visit(condition, &inner_item)?;
+                                    let matched = match self.visit(condition, &inner_item) {
+                                        Ok(v) => v,
+                                        Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                                    };
                                     if to_boolean(&matched) {
                                         filtered.push(inner_item);
                                     }
                                 }
                                 let mut final_results = Vec::new();
                                 for inner_item in filtered {
-                                    final_results.push(self.visit(right, &inner_item)?);
+                                    match self.visit(right, &inner_item) {
+                                        Ok(v) => final_results.push(v),
+                                        Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                                    }
                                 }
                                 projected.push(JfValue::Array(final_results));
                             } else {
                                 projected.push(JfValue::Null);
                             }
                         }
-                        return Ok(JfValue::Array(projected));
-                    }
-                    let mut filtered = Vec::new();
-                    for item in items {
-                        let matched = self.visit(condition, &item)?;
-                        if to_boolean(&matched) {
-                            filtered.push(item);
+                        self.trace_stack = saved_stack;
+                        JfValue::Array(projected)
+                    } else {
+                        let mut filtered = Vec::new();
+                        let saved_stack = self.trace_stack.take();
+                        for item in items {
+                            let matched = match self.visit(condition, &item) {
+                                Ok(v) => v,
+                                Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                            };
+                            if to_boolean(&matched) {
+                                filtered.push(item);
+                            }
                         }
+                        let mut final_results = Vec::new();
+                        for item in filtered {
+                            match self.visit(right, &item) {
+                                Ok(v) => final_results.push(v),
+                                Err(e) => { self.trace_stack = saved_stack; self.trace_pop_layer(); return Err(e); }
+                            }
+                        }
+                        self.trace_stack = saved_stack;
+                        JfValue::Array(final_results)
                     }
-                    let mut final_results = Vec::new();
-                    for item in filtered {
-                        final_results.push(self.visit(right, &item)?);
-                    }
-                    Ok(JfValue::Array(final_results))
                 } else {
                     self.debug_mut()
                         .push("Filter expressions apply to arrays only".to_string());
-                    Ok(JfValue::Null)
-                }
+                    JfValue::Null
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::Comparator { op, left, right } => {
                 self.trace_push_layer();

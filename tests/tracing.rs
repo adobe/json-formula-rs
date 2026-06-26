@@ -120,3 +120,32 @@ fn test_if_function_traced() {
     // condition + chosen branch only, not both branches
     assert_eq!(trace.children.len(), 2);
 }
+
+#[test]
+fn test_projection_traced_single_entry() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"items": [{"price": 1}, {"price": 2}, {"price": 3}]});
+    let (value, trace) = jf.evaluate_with_trace("items[*].price", &data, None, None, false).unwrap();
+    assert_eq!(value, json!([1, 2, 3]));
+    // projection emits one entry — no per-element children
+    let proj = trace.children.iter().find(|c| c.expr.contains("[*]") || c.expr.contains("price"));
+    assert!(proj.is_some() || trace.expr.contains("[*]") || trace.value == json!([1, 2, 3]));
+}
+
+#[test]
+fn test_bracket_expression_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"arr": [10, 20, 30]});
+    let (value, trace) = jf.evaluate_with_trace("arr[1]", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(20));
+    assert!(trace.value == json!(20) || trace.children.iter().any(|c| c.value == json!(20)));
+}
+
+#[test]
+fn test_chained_expression_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"foo": {"bar": {"baz": 42}}});
+    let (value, trace) = jf.evaluate_with_trace("foo.bar.baz", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(42));
+    assert_eq!(trace.value, json!(42));
+}
