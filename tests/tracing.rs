@@ -32,3 +32,58 @@ fn test_sub_expr_trace_type_exists() {
     assert_eq!(trace.value, json!(true));
     assert!(trace.children.is_empty());
 }
+
+#[test]
+fn test_and_both_branches_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5, "y": 3});
+    let (value, trace) = jf.evaluate_with_trace("(x > 1) && (y > 2)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(true));
+    assert_eq!(trace.children.len(), 2);
+    assert_eq!(trace.children[0].value, json!(true));   // x > 1
+    assert_eq!(trace.children[1].value, json!(true));   // y > 2
+}
+
+#[test]
+fn test_and_short_circuit() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 0, "y": 3});
+    let (value, trace) = jf.evaluate_with_trace("(x > 1) && (y > 2)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(false));
+    assert_eq!(trace.children.len(), 1);
+    assert!(trace.children[0].expr.contains(">"));
+    assert_eq!(trace.children[0].value, json!(false));
+}
+
+#[test]
+fn test_or_short_circuit() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5, "y": 0});
+    let (value, trace) = jf.evaluate_with_trace("(x > 1) || (y > 2)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(true));
+    assert_eq!(trace.children.len(), 1);
+    assert_eq!(trace.children[0].value, json!(true));
+}
+
+#[test]
+fn test_not_expression_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5});
+    let (value, trace) = jf.evaluate_with_trace("!(x > 1)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(false));
+    assert!(trace.expr.starts_with('!'));
+    assert_eq!(trace.children.len(), 1);
+    assert_eq!(trace.children[0].value, json!(true)); // x > 1
+}
+
+#[test]
+fn test_three_level_trace() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"a": 3, "b": 4, "c": 10});
+    let (value, trace) = jf.evaluate_with_trace("(a + b) > c", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(false));
+    assert!(trace.expr.contains(">"));
+    assert_eq!(trace.children.len(), 1);
+    assert!(trace.children[0].expr.contains("+"));
+    assert_eq!(trace.children[0].value, json!(7));
+}

@@ -48,14 +48,12 @@ impl Interpreter {
         self.trace_stack = Some(vec![Vec::new()]);
     }
 
-    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_push_layer(&mut self) {
         if let Some(stack) = &mut self.trace_stack {
             stack.push(Vec::new());
         }
     }
 
-    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_pop_layer(&mut self) -> Vec<crate::runtime::SubExprTrace> {
         if let Some(stack) = &mut self.trace_stack {
             stack.pop().unwrap_or_default()
@@ -64,7 +62,6 @@ impl Interpreter {
         }
     }
 
-    #[allow(dead_code)] // called when trace entries are emitted in visit() (next task)
     fn trace_emit(&mut self, expr: String, value: &JfValue, children: Vec<crate::runtime::SubExprTrace>) {
         if let Some(stack) = &mut self.trace_stack {
             if let Some(parent_layer) = stack.last_mut() {
@@ -310,25 +307,38 @@ impl Interpreter {
                 }
             }
             AstNode::Comparator { op, left, right } => {
+                self.trace_push_layer();
                 let first = get_value_of(&self.visit(left, value)?);
                 let second = get_value_of(&self.visit(right, value)?);
 
                 if op == "==" {
-                    return Ok(JfValue::Bool(strict_deep_equal(&first, &second)));
+                    let result = JfValue::Bool(strict_deep_equal(&first, &second));
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
                 }
                 if op == "!=" {
-                    return Ok(JfValue::Bool(!strict_deep_equal(&first, &second)));
+                    let result = JfValue::Bool(!strict_deep_equal(&first, &second));
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
                 }
 
                 if matches!(first, JfValue::Object(_) | JfValue::Array(_)) {
                     self.debug_mut()
                         .push(format!("Cannot use comparators with {}", type_name(&first)));
-                    return Ok(JfValue::Bool(false));
+                    let result = JfValue::Bool(false);
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
                 }
                 if matches!(second, JfValue::Object(_) | JfValue::Array(_)) {
                     self.debug_mut()
                         .push(format!("Cannot use comparators with {}", type_name(&second)));
-                    return Ok(JfValue::Bool(false));
+                    let result = JfValue::Bool(false);
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
                 }
                 let type1 = get_type(&first);
                 let type2 = get_type(&second);
@@ -342,15 +352,22 @@ impl Interpreter {
                     let n1 = unsafe { (&mut *self.runtime).to_number(&first) };
                     let n2 = unsafe { (&mut *self.runtime).to_number(&second) };
                     if n1.is_err() || n2.is_err() {
-                        return Ok(JfValue::Bool(false));
+                        let result = JfValue::Bool(false);
+                        let children = self.trace_pop_layer();
+                        self.trace_emit(node.to_expr_string(), &result, children);
+                        return Ok(result);
                     }
                     compare_f64(n1?, n2?, op)
                 };
-                Ok(JfValue::Bool(cmp))
+                let result = JfValue::Bool(cmp);
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::Flatten(inner) => {
+                self.trace_push_layer();
                 let original = self.visit(inner, value)?;
-                if let JfValue::Array(items) = original {
+                let result = if let JfValue::Array(items) = original {
                     let mut merged = Vec::new();
                     for current in items {
                         if let JfValue::Array(nested) = current {
@@ -359,11 +376,14 @@ impl Interpreter {
                             merged.push(current);
                         }
                     }
-                    Ok(JfValue::Array(merged))
+                    JfValue::Array(merged)
                 } else {
                     self.debug_mut().push("Flatten expressions apply to arrays only. If you want an empty array, use a JSON literal: `[]`".to_string());
-                    Ok(JfValue::Null)
-                }
+                    JfValue::Null
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::Identity => Ok(value.clone()),
             AstNode::ArrayExpression(children) => {
@@ -385,50 +405,84 @@ impl Interpreter {
                 Ok(JfValue::Object(out))
             }
             AstNode::OrExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
-                if !to_boolean(&first) {
-                    return self.visit(right, value);
-                }
-                Ok(first)
-            }
-            AstNode::AndExpression(left, right) => {
-                let first = self.visit(left, value)?;
-                if !to_boolean(&first) {
+                if to_boolean(&first) {
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &first, children);
                     return Ok(first);
                 }
-                self.visit(right, value)
+                let result = self.visit(right, value)?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
+            }
+            AstNode::AndExpression(left, right) => {
+                self.trace_push_layer();
+                let first = self.visit(left, value)?;
+                if !to_boolean(&first) {
+                    let children = self.trace_pop_layer();
+                    let result = first;
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
+                }
+                let result = self.visit(right, value)?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::AddExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
                 let second = self.visit(right, value)?;
                 balance_array_operands(&first, &second);
-                self.apply_operator(first, second, "+")
+                let result = self.apply_operator(first, second, "+")?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::SubtractExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
                 let second = self.visit(right, value)?;
                 balance_array_operands(&first, &second);
-                self.apply_operator(first, second, "-")
+                let result = self.apply_operator(first, second, "-")?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::MultiplyExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
                 let second = self.visit(right, value)?;
                 balance_array_operands(&first, &second);
-                self.apply_operator(first, second, "*")
+                let result = self.apply_operator(first, second, "*")?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::DivideExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
                 let second = self.visit(right, value)?;
                 balance_array_operands(&first, &second);
-                self.apply_operator(first, second, "/")
+                let result = self.apply_operator(first, second, "/")?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::ConcatenateExpression(left, right) => {
+                self.trace_push_layer();
                 let first = self.visit(left, value)?;
                 let second = self.visit(right, value)?;
                 balance_array_operands(&first, &second);
-                self.apply_operator(first, second, "&")
+                let result = self.apply_operator(first, second, "&")?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::UnionExpression(left, right) => {
+                self.trace_push_layer();
                 let mut first = self.visit(left, value)?;
                 let mut second = self.visit(right, value)?;
                 if matches!(first, JfValue::Null) {
@@ -451,18 +505,26 @@ impl Interpreter {
                     |v| unsafe { (&mut *self.runtime).to_number(&v) },
                     |v| unsafe { (&mut *self.runtime).to_string(&v) },
                 )?;
-                if let (JfValue::Array(mut a), JfValue::Array(b)) = (first, second) {
+                let result = if let (JfValue::Array(mut a), JfValue::Array(b)) = (first, second) {
                     a.extend(b);
-                    Ok(JfValue::Array(a))
+                    JfValue::Array(a)
                 } else {
-                    Ok(JfValue::Null)
-                }
+                    JfValue::Null
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::NotExpression(inner) => {
+                self.trace_push_layer();
                 let first = self.visit(inner, value)?;
-                Ok(JfValue::Bool(!to_boolean(&first)))
+                let result = JfValue::Bool(!to_boolean(&first));
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::UnaryMinusExpression(inner) => {
+                self.trace_push_layer();
                 let first = self.visit(inner, value)?;
                 let number = match get_value_of(&first) {
                     JfValue::Number(n) => n,
@@ -473,20 +535,28 @@ impl Interpreter {
                 };
                 let minus = number * -1.0;
                 if minus.is_nan() {
+                    self.trace_pop_layer();
                     return Err(JsonFormulaError::ty(format!(
                         "Failed to convert \"{}\" to number",
                         value_to_string(&first)
                     )));
                 }
-                Ok(JfValue::Number(minus))
+                let result = JfValue::Number(minus);
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::String(value) => Ok(JfValue::String(value.clone())),
             AstNode::Literal(value) => Ok(JfValue::from_json(value)),
             AstNode::Number(value) => Ok(JfValue::Number(*value)),
             AstNode::Integer(value) => Ok(JfValue::Number(*value as f64)),
             AstNode::Pipe(left, right) => {
+                self.trace_push_layer();
                 let left_val = self.visit(left, value)?;
-                self.visit(right, &left_val)
+                let result = self.visit(right, &left_val)?;
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::Current => Ok(value.clone()),
             AstNode::Global(name) => {
