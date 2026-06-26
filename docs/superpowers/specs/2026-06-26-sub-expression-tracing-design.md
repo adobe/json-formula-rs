@@ -23,26 +23,28 @@ pub struct SubExprTrace {
 
 The trace is a tree that mirrors evaluation structure. Each node shows the reconstructed expression text and its result. Children are sub-expressions that were evaluated to produce the parent result.
 
-**Example:** `A && B` with `A = true`, `B = false`
+**Example:** `(X > 1) && (Y > 2)` with `X = 5`, `Y = 0`
 
 ```
 SubExprTrace {
-  expr: "A && B",
+  expr: "(X > 1) && (Y > 2)",
   value: false,
   children: [
-    SubExprTrace { expr: "A", value: true,  children: [] },
-    SubExprTrace { expr: "B", value: false, children: [] },
+    SubExprTrace { expr: "X > 1", value: true,  children: [...] },
+    SubExprTrace { expr: "Y > 2", value: false, children: [...] },
   ]
 }
 ```
 
-**Short-circuit behavior:** Unevaluated branches do not appear. For `false && B`, the trace has one child (`A`), not two.
+**Short-circuit behavior:** Unevaluated branches do not appear. For `(X > 1) && (Y > 2)` where `X > 1` is false, only the left child appears — `Y > 2` is never evaluated and has no trace entry.
 
 ## Expression Text Reconstruction
 
 `AstNode` gains a `to_expr_string() -> String` method that reconstructs normalized expression text from the AST. The output is not identical to the source but is unambiguous and readable.
 
-Binary sub-expressions wrap in parentheses when nested to preserve precedence clarity:
+Binary sub-expressions wrap in parentheses when nested to preserve precedence clarity. Round-trip fidelity is not required — prefer readability over exactness. The guiding rule: an implementer who reads the reconstructed string should be able to identify which part of the original expression it corresponds to.
+
+Illustrative examples:
 
 | Expression | Reconstructed |
 |---|---|
@@ -51,18 +53,25 @@ Binary sub-expressions wrap in parentheses when nested to preserve precedence cl
 | `sum(a, b) > 10` | `sum(a, b) > 10` |
 | `(A + B) * C` | `(A + B) * C` |
 | `arr[0]` | `arr[0]` |
+| `arr[1:3]` | `arr[1:3]` |
+| `arr[*]` | `arr[*]` |
+| `arr[?x > 1].y` | `arr[?x > 1].y` |
+| `{key: val}` | `{key: val}` |
+| `[a, b, c]` | `[a, b, c]` |
+
+All `AstNode` variants must have a `to_expr_string()` implementation. For any variant not covered by the table above, the implementer may use a concise placeholder (e.g. `"<expr>"`) as long as it does not produce an empty string.
 
 ## Nodes That Emit Trace Entries
 
 Not every node is worth tracing. The following emit entries because their results are non-obvious:
 
 **Traced:**
-- Binary expressions: `AndExpression`, `OrExpression`, `AddExpression`, `SubtractExpression`, `MultiplyExpression`, `DivideExpression`, `ConcatenateExpression`, `Comparator`
-- Unary expressions: `NotExpression`, `UnaryMinusExpression`
+- Binary expressions: `AndExpression`, `OrExpression`, `AddExpression`, `SubtractExpression`, `MultiplyExpression`, `DivideExpression`, `ConcatenateExpression`, `UnionExpression`, `Comparator`
+- Unary expressions: `NotExpression`, `UnaryMinusExpression`, `Flatten`
 - `Pipe`
-- `Function` calls
-- `Projection`, `ValueProjection`, `FilterProjection`
-- `ChainedExpression` — one entry per step, showing the accumulated path
+- `Function` calls — children are the trace entries produced by evaluating each argument expression in order
+- `Projection`, `ValueProjection`, `FilterProjection` — each emits a single trace entry whose value is the final result array; per-element evaluation does not produce child entries (doing so would generate one entry per array element, which is too noisy for the debugging use case)
+- `ChainedExpression` — one entry per step, showing the accumulated path string (e.g. `"foo"`, `"foo.bar"`, `"foo.bar.baz"`); inner nodes within a chain step that are themselves traced emit independent child entries under that step's trace entry
 - `BracketExpression` — one entry for the full bracket access
 
 **Not traced** (self-evident or too noisy):
@@ -70,6 +79,8 @@ Not every node is worth tracing. The following emit entries because their result
 - `Identifier`, `QuotedIdentifier` — leaf nodes
 - `Current`, `Global`, `Identity` — contextual references
 - `ArrayExpression`, `ObjectExpression` — constructors
+- `ExpressionReference` — packages an AST node as a `JfValue::Expref`; the node is not evaluated at this point and emits no trace entry here. Tracing does not follow into deferred evaluation inside function bodies.
+- `KeyValuePair` — subsumed by `ObjectExpression`; not reachable as a standalone top-level dispatch target
 - `Index`, `Slice` — structural, subordinate to `BracketExpression`
 
 ## Public API
@@ -98,7 +109,7 @@ pub fn evaluate_with_trace(
 ) -> Result<(JsonValue, SubExprTrace), JsonFormulaError>
 ```
 
-`SubExprTrace` is exported from `src/lib.rs` alongside the existing `EvalOutcome` and `JsonFormula`.
+`SubExprTrace` is defined in `src/runtime.rs` and exported from `src/lib.rs` alongside the existing `EvalOutcome` and `JsonFormula`.
 
 The existing `run()`, `evaluate()`, and `search()` methods are unchanged.
 
@@ -106,17 +117,23 @@ The existing `run()`, `evaluate()`, and `search()` methods are unchanged.
 
 ### Interpreter changes (`src/interpreter.rs`)
 
-Add an optional trace output pointer to `Interpreter`:
+Add a child-collection stack to `Interpreter`:
 
 ```rust
-trace: Option<*mut Vec<SubExprTrace>>,
+trace_stack: Option<Vec<Vec<SubExprTrace>>>,
 ```
 
-When tracing is active, `visit()` wraps each traced node type: evaluate as normal, then push a `SubExprTrace` with the node's `to_expr_string()`, the result, and any children collected during evaluation of sub-nodes.
+When tracing is active, `visit()` wraps each traced node type as follows:
 
-Children are collected by temporarily pushing a fresh `Vec<SubExprTrace>` onto a per-call stack and draining it after the node evaluates.
+1. Push a fresh `Vec<SubExprTrace>` onto `trace_stack` before recursing into child nodes.
+2. Evaluate the node (which recurses into children; each child's traced result is pushed onto the top of the stack).
+3. Pop the top `Vec<SubExprTrace>` — these are the children of the current node.
+4. Build `SubExprTrace { expr: node.to_expr_string(), value: result.to_json(), children }` — `JfValue::to_json()` already exists in the codebase and converts a `JfValue` to `serde_json::Value`.
+5. Push it onto the new top of the stack (the parent's collection layer).
 
-For `ChainedExpression`, emit one trace entry per chain step with the accumulated path string (e.g. `"foo"`, `"foo.bar"`, `"foo.bar.baz"`).
+The root call initializes `trace_stack` with one empty `Vec`. After `visit()` returns at the root, that `Vec` contains exactly one entry — the top-level `SubExprTrace`.
+
+For `ChainedExpression`, emit one trace entry per chain step. The accumulated path string grows as each step is processed (e.g. `"foo"`, `"foo.bar"`, `"foo.bar.baz"`). Inner nodes within a step that are themselves traced emit as children of that step's entry using the same stack discipline.
 
 ### No changes to AST node structure
 
@@ -133,11 +150,12 @@ For `ChainedExpression`, emit one trace entry per chain step with the accumulate
 
 ## Testing
 
-- `A && B` — both branches traced with correct values
-- `false && B` — only `A` traced (short-circuit)
-- `A \|\| B` where `A` is truthy — only `A` traced
+- `(X > 1) && (Y > 2)` — both branches traced with correct values
+- `(X > 1) && (Y > 2)` where `X > 1` is false — only left branch traced (short-circuit)
+- `(X > 1) \|\| (Y > 2)` where `X > 1` is truthy — only left branch traced
 - `(A + B) > C` — three-level trace tree
 - `foo.bar.baz` — chained expression traces each step
 - `arr[0]` — bracket expression traced as single entry
 - `sum(a, b)` — function call traced with argument values as children
+- `items[*].price` — projection traced as single entry with result array value; no per-element children
 - Existing `evaluate()` / `run()` behavior unchanged
