@@ -87,3 +87,25 @@ fn test_three_level_trace() {
     assert!(trace.children[0].expr.contains("+"));
     assert_eq!(trace.children[0].value, json!(7));
 }
+
+#[test]
+fn test_function_call_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"items": [1, 2, 3]});
+    let (value, trace) = jf.evaluate_with_trace("length(items)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(3));
+    assert!(trace.expr.contains("length"));
+    assert_eq!(trace.value, json!(3));
+}
+
+#[test]
+fn test_function_args_as_children() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"a": 3, "b": 4});
+    let (value, trace) = jf.evaluate_with_trace("max(a, b)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(4));
+    assert!(trace.expr.contains("max"));
+    assert_eq!(trace.children.len(), 2);
+    assert_eq!(trace.children[0].value, json!(3));
+    assert_eq!(trace.children[1].value, json!(4));
+}

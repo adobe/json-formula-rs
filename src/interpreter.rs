@@ -624,28 +624,57 @@ impl Interpreter {
                 }
             }
             AstNode::Function { name, args } => {
+                self.trace_push_layer();
                 if name == "if" {
                     if args.len() != 3 {
+                        self.trace_pop_layer();
                         return Err(JsonFormulaError::function(
                             "if() takes 3 arguments".to_string(),
                         ));
                     }
-                    let condition = self.visit(&args[0], value)?;
+                    let condition = match self.visit(&args[0], value) {
+                        Ok(v) => v,
+                        Err(e) => { self.trace_pop_layer(); return Err(e); }
+                    };
                     if matches!(condition, JfValue::Expref(_)) {
+                        self.trace_pop_layer();
                         return Err(JsonFormulaError::ty(
                             "if() does not accept an expression reference argument.".to_string(),
                         ));
                     }
-                    if to_boolean(&condition) {
-                        return self.visit(&args[1], value);
-                    }
-                    return self.visit(&args[2], value);
+                    let result = if to_boolean(&condition) {
+                        match self.visit(&args[1], value) {
+                            Ok(v) => v,
+                            Err(e) => { self.trace_pop_layer(); return Err(e); }
+                        }
+                    } else {
+                        match self.visit(&args[2], value) {
+                            Ok(v) => v,
+                            Err(e) => { self.trace_pop_layer(); return Err(e); }
+                        }
+                    };
+                    let children = self.trace_pop_layer();
+                    self.trace_emit(node.to_expr_string(), &result, children);
+                    return Ok(result);
                 }
                 let mut resolved_args = Vec::new();
                 for child in args {
-                    resolved_args.push(self.visit(child, value)?);
+                    self.trace_push_layer();
+                    let arg_val = match self.visit(child, value) {
+                        Ok(v) => v,
+                        Err(e) => { self.trace_pop_layer(); self.trace_pop_layer(); return Err(e); }
+                    };
+                    let sub_children = self.trace_pop_layer();
+                    self.trace_emit(child.to_expr_string(), &arg_val, sub_children);
+                    resolved_args.push(arg_val);
                 }
-                unsafe { (&mut *self.runtime).call_function(name, resolved_args, value, self, true) }
+                let result = match unsafe { (&mut *self.runtime).call_function(name, resolved_args, value, self, true) } {
+                    Ok(v) => v,
+                    Err(e) => { self.trace_pop_layer(); return Err(e); }
+                };
+                let children = self.trace_pop_layer();
+                self.trace_emit(node.to_expr_string(), &result, children);
+                Ok(result)
             }
             AstNode::ExpressionReference(expr) => Ok(JfValue::Expref(Box::new((**expr).clone()))),
             AstNode::KeyValuePair { .. } => Err(JsonFormulaError::syntax(
