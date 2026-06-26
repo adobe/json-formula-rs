@@ -127,9 +127,19 @@ fn test_projection_traced_single_entry() {
     let data = json!({"items": [{"price": 1}, {"price": 2}, {"price": 3}]});
     let (value, trace) = jf.evaluate_with_trace("items[*].price", &data, None, None, false).unwrap();
     assert_eq!(value, json!([1, 2, 3]));
-    // projection emits one entry — no per-element children
-    let proj = trace.children.iter().find(|c| c.expr.contains("[*]") || c.expr.contains("price"));
-    assert!(proj.is_some() || trace.expr.contains("[*]") || trace.value == json!([1, 2, 3]));
+    // The projection result appears somewhere in the tree — either as the root or a child.
+    // Crucially, no per-element entries (3 items would give 3 children if per-element were traced).
+    let proj_trace = if trace.value == json!([1, 2, 3]) {
+        &trace
+    } else {
+        trace.children.iter().find(|c| c.value == json!([1, 2, 3]))
+            .expect("projection result [1,2,3] should appear in trace")
+    };
+    // No per-element children — only one entry for the whole projection result
+    assert!(
+        proj_trace.children.len() != 3,
+        "projection should not emit one child per element"
+    );
 }
 
 #[test]
@@ -138,7 +148,10 @@ fn test_bracket_expression_traced() {
     let data = json!({"arr": [10, 20, 30]});
     let (value, trace) = jf.evaluate_with_trace("arr[1]", &data, None, None, false).unwrap();
     assert_eq!(value, json!(20));
-    assert!(trace.value == json!(20) || trace.children.iter().any(|c| c.value == json!(20)));
+    // The bracket result should appear in the trace tree
+    let found = trace.value == json!(20)
+        || trace.children.iter().any(|c| c.value == json!(20));
+    assert!(found, "bracket result 20 should appear in trace");
 }
 
 #[test]
@@ -148,4 +161,43 @@ fn test_chained_expression_traced() {
     let (value, trace) = jf.evaluate_with_trace("foo.bar.baz", &data, None, None, false).unwrap();
     assert_eq!(value, json!(42));
     assert_eq!(trace.value, json!(42));
+}
+
+// --- Negative / error-path tests ---
+
+#[test]
+fn test_evaluate_with_trace_syntax_error() {
+    let mut jf = JsonFormula::new();
+    let data = json!({});
+    let result = jf.evaluate_with_trace("(((", &data, None, None, false);
+    assert!(result.is_err(), "syntax error should propagate through evaluate_with_trace");
+}
+
+#[test]
+fn test_evaluate_with_trace_unknown_function() {
+    let mut jf = JsonFormula::new();
+    let data = json!({});
+    let result = jf.evaluate_with_trace("noSuchFunction()", &data, None, None, false);
+    assert!(result.is_err(), "unknown function should propagate through evaluate_with_trace");
+}
+
+#[test]
+fn test_evaluate_with_trace_type_error() {
+    let mut jf = JsonFormula::new();
+    // unary minus on a string is a TypeError
+    let data = json!({"s": "hello"});
+    let result = jf.evaluate_with_trace("-s", &data, None, None, false);
+    assert!(result.is_err(), "type error should propagate through evaluate_with_trace");
+}
+
+#[test]
+fn test_evaluate_still_works_after_trace_error() {
+    // Ensures the interpreter is re-created per call, so a failed trace call
+    // doesn't corrupt subsequent non-tracing calls.
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5});
+    let _ = jf.evaluate_with_trace("noSuchFunction()", &data, None, None, false);
+    // subsequent evaluate must still work correctly
+    let result = jf.evaluate("x > 1", &data, None, None, false).unwrap();
+    assert_eq!(result, json!(true));
 }
