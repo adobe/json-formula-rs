@@ -29,6 +29,13 @@ pub struct EvalOutcome {
     pub error: Option<JsonFormulaError>,
 }
 
+#[derive(Debug, Clone)]
+pub struct SubExprTrace {
+    pub expr: String,
+    pub value: serde_json::Value,
+    pub children: Vec<SubExprTrace>,
+}
+
 pub struct JsonFormula {
     runtime: Runtime,
     debug: Vec<String>,
@@ -97,6 +104,45 @@ impl JsonFormula {
     ) -> Result<JsonValue, JsonFormulaError> {
         let ast = self.compile(expression, &[])?;
         self.run(&ast, json, globals, language, fields_only)
+    }
+
+    pub fn run_with_trace(
+        &mut self,
+        ast: &AstNode,
+        json: &JsonValue,
+        globals: Option<&JsonValue>,
+        language: Option<&str>,
+        fields_only: bool,
+    ) -> Result<(JsonValue, SubExprTrace), JsonFormulaError> {
+        let data = JfValue::from_json(json);
+        let globals_value = globals.map(JfValue::from_json);
+        let data = if fields_only { wrap_fields(&data) } else { data };
+        let mut interpreter = Interpreter::new(
+            &mut self.runtime,
+            globals_value,
+            language.unwrap_or("en-US"),
+            &mut self.debug,
+        );
+        interpreter.enable_tracing();
+        let result = interpreter.search(ast, &data)?;
+        let trace = interpreter.take_root_trace().unwrap_or_else(|| SubExprTrace {
+            expr: ast.to_expr_string(),
+            value: result.to_json(),
+            children: vec![],
+        });
+        Ok((result.to_json(), trace))
+    }
+
+    pub fn evaluate_with_trace(
+        &mut self,
+        expression: &str,
+        json: &JsonValue,
+        globals: Option<&JsonValue>,
+        language: Option<&str>,
+        fields_only: bool,
+    ) -> Result<(JsonValue, SubExprTrace), JsonFormulaError> {
+        let ast = self.compile(expression, &[])?;
+        self.run_with_trace(&ast, json, globals, language, fields_only)
     }
 
     pub fn debug(&self) -> &[String] {
