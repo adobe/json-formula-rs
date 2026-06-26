@@ -662,7 +662,7 @@ impl Interpreter {
                     self.trace_push_layer();
                     let arg_val = match self.visit(child, value) {
                         Ok(v) => v,
-                        Err(e) => { self.trace_pop_layer(); self.trace_pop_layer(); return Err(e); }
+                        Err(e) => { self.trace_pop_layer(); self.trace_pop_layer(); /* outer function layer */ return Err(e); }
                     };
                     let sub_children = self.trace_pop_layer();
                     self.trace_emit(child.to_expr_string(), &arg_val, sub_children);

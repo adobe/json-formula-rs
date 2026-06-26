@@ -109,3 +109,14 @@ fn test_function_args_as_children() {
     assert_eq!(trace.children[0].value, json!(3));
     assert_eq!(trace.children[1].value, json!(4));
 }
+
+#[test]
+fn test_if_function_traced() {
+    let mut jf = JsonFormula::new();
+    let data = json!({"x": 5, "y": 10});
+    let (value, trace) = jf.evaluate_with_trace("if(x > 1, y + `5`, `\"no\"`)", &data, None, None, false).unwrap();
+    assert_eq!(value, json!(15));
+    assert!(trace.expr.contains("if"));
+    // condition + chosen branch only, not both branches
+    assert_eq!(trace.children.len(), 2);
+}
