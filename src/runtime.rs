@@ -158,7 +158,9 @@ impl JsonFormula {
     /// The function accepts zero or one argument. When called with no argument,
     /// the body is evaluated with the current context (`data`); when called
     /// with one argument, the body is evaluated with that argument as the
-    /// current value (so `@` in the body refers to the argument).
+    /// current value (so `@` in the body refers to the argument). The body may
+    /// also refer to `$args`, which is bound to the raw arguments array (e.g.
+    /// `$args[0]` is equivalent to `@` when called with one argument).
     pub fn register_expression(
         &mut self,
         name: &str,
@@ -173,7 +175,8 @@ impl JsonFormula {
                 } else {
                     args[0].clone()
                 };
-                interp.visit(&body_ast, &value)
+                let args_value = JfValue::Array(args);
+                interp.visit_with_args_global(&body_ast, &value, args_value)
             }),
             signature: vec![SignatureArg {
                 types: vec![DataType::Any],
@@ -191,6 +194,9 @@ impl JsonFormula {
     /// the body is evaluated with `@` set to `[arg0, arg1, ..., argN-1]`. When
     /// called with no arguments, `@` is set to the current evaluation context
     /// (`data`), matching the zero-argument behaviour of `register_expression`.
+    /// The body may also refer to `$args`, which is always bound to the raw
+    /// arguments array (`[arg0, arg1, ..., argN-1]`, or `[]` when called with no
+    /// arguments), regardless of what `@` is bound to.
     pub fn register_expression_with_params(
         &mut self,
         name: &str,
@@ -203,9 +209,10 @@ impl JsonFormula {
                 let ctx = if args.is_empty() {
                     data.clone()
                 } else {
-                    JfValue::Array(args)
+                    JfValue::Array(args.clone())
                 };
-                interp.visit(&body_ast, &ctx)
+                let args_value = JfValue::Array(args);
+                interp.visit_with_args_global(&body_ast, &ctx, args_value)
             }),
             signature: vec![SignatureArg {
                 types: vec![DataType::Any],

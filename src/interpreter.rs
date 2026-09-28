@@ -10,6 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+use indexmap::IndexMap;
+
 use crate::ast::AstNode;
 use crate::errors::JsonFormulaError;
 use crate::runtime::Runtime;
@@ -81,6 +83,32 @@ impl Interpreter {
             }
         }
         None
+    }
+
+    /// Evaluates `body` against `ctx`, temporarily binding the global `$args` to
+    /// `args_value` for the duration of the call. Used by `register()` /
+    /// `register_expression()` (bound to the single positional argument) and by
+    /// `registerWithParams()` / `register_expression_with_params()` (bound to the
+    /// full arguments array), so expression bodies may refer to `$args` in
+    /// addition to `@`. The previous `$args` binding (if any) is restored after
+    /// the call, including on error, so nested/recursive registered calls each see
+    /// their own arguments.
+    pub fn visit_with_args_global(
+        &mut self,
+        body: &AstNode,
+        ctx: &JfValue,
+        args_value: JfValue,
+    ) -> Result<JfValue, JsonFormulaError> {
+        let saved_globals = self.globals.clone();
+        let mut map = match &self.globals {
+            Some(JfValue::Object(map)) => map.clone(),
+            _ => IndexMap::new(),
+        };
+        map.insert("$args".to_string(), args_value);
+        self.globals = Some(JfValue::Object(map));
+        let result = self.visit(body, ctx);
+        self.globals = saved_globals;
+        result
     }
 
     pub fn search(&mut self, node: &AstNode, value: &JfValue) -> Result<JfValue, JsonFormulaError> {

@@ -1255,7 +1255,8 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
                         } else {
                             args[0].clone()
                         };
-                        interp.visit(&expref, &value)
+                        let args_value = JfValue::Array(args);
+                        interp.visit_with_args_global(&expref, &value, args_value)
                     }),
                     signature: vec![SignatureArg {
                         types: vec![DataType::Any],
@@ -1318,7 +1319,9 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
                 }
                 let entry = FunctionEntry {
                     func: Box::new(move |_runtime, args, _data, interp| {
-                        interp.visit(&expref, &JfValue::Array(args))
+                        let ctx = JfValue::Array(args);
+                        let args_value = ctx.clone();
+                        interp.visit_with_args_global(&expref, &ctx, args_value)
                     }),
                     signature: vec![SignatureArg {
                         types: vec![DataType::Any],
