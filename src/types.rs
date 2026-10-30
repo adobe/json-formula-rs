@@ -129,10 +129,11 @@ pub fn get_type(value: &JfValue) -> DataType {
             if items.is_empty() {
                 return DataType::EmptyArray;
             }
-            if items.iter().all(|v| matches!(get_type(v), DataType::Number)) {
+            let flat = flatten_all(items);
+            if flat.iter().all(|v| matches!(get_type(v), DataType::Number)) {
                 return DataType::ArrayNumber;
             }
-            if items.iter().all(|v| matches!(get_type(v), DataType::String)) {
+            if flat.iter().all(|v| matches!(get_type(v), DataType::String)) {
                 return DataType::ArrayString;
             }
             if items.iter().all(|v| is_array_type(get_type(v))) {
@@ -240,7 +241,7 @@ where
     if is_array_type(actual) {
         if matches!(expected, DataType::ArrayNumber | DataType::ArrayString) {
             if let JfValue::Array(items) = &arg_value {
-                if items.iter().any(|a| {
+                if flatten_all(items).iter().any(|a| {
                     let t = get_type(a);
                     is_array_type(t) || is_object(t)
                 }) {
@@ -288,14 +289,14 @@ where
             if expected == DataType::ArrayString {
                 let mut out = Vec::new();
                 for item in items {
-                    out.push(JfValue::String(to_string(item.clone())?));
+                    out.push(coerce_deep(item, &mut |v| Ok(JfValue::String(to_string(v)?)))?);
                 }
                 return Ok(JfValue::Array(out));
             }
             if expected == DataType::ArrayNumber {
                 let mut out = Vec::new();
                 for item in items {
-                    out.push(JfValue::Number(to_number(item.clone())?));
+                    out.push(coerce_deep(item, &mut |v| Ok(JfValue::Number(to_number(v)?)))?);
                 }
                 return Ok(JfValue::Array(out));
             }
@@ -342,4 +343,30 @@ where
         type_name(expected),
         type_name(actual)
     )))
+}
+
+fn flatten_all(items: &[JfValue]) -> Vec<&JfValue> {
+    let mut out = Vec::new();
+    for item in items {
+        match item {
+            JfValue::Array(inner) => out.extend(flatten_all(inner)),
+            other => out.push(other),
+        }
+    }
+    out
+}
+
+fn coerce_deep(
+    value: &JfValue,
+    f: &mut dyn FnMut(JfValue) -> Result<JfValue, crate::errors::JsonFormulaError>,
+) -> Result<JfValue, crate::errors::JsonFormulaError> {
+    match value {
+        JfValue::Array(items) => Ok(JfValue::Array(
+            items
+                .iter()
+                .map(|i| coerce_deep(i, f))
+                .collect::<Result<Vec<_>, _>>()?,
+        )),
+        other => f(other.clone()),
+    }
 }

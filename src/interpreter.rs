@@ -385,34 +385,18 @@ impl Interpreter {
                 self.apply_operator(first, second, "&")
             }
             AstNode::UnionExpression(left, right) => {
-                let mut first = self.visit(left, value)?;
-                let mut second = self.visit(right, value)?;
-                if matches!(first, JfValue::Null) {
-                    first = JfValue::Array(vec![JfValue::Null]);
+                // Non-array operands are treated as single-element arrays.
+                let first = self.visit(left, value)?;
+                let second = self.visit(right, value)?;
+                let mut out = match first {
+                    JfValue::Array(a) => a,
+                    other => vec![other],
+                };
+                match second {
+                    JfValue::Array(b) => out.extend(b),
+                    other => out.push(other),
                 }
-                if matches!(second, JfValue::Null) {
-                    second = JfValue::Array(vec![JfValue::Null]);
-                }
-                let first = crate::types::match_type(
-                    &[DataType::Array],
-                    first,
-                    "union",
-                    |v| unsafe { (&mut *self.runtime).to_number(&v) },
-                    |v| unsafe { (&mut *self.runtime).to_string(&v) },
-                )?;
-                let second = crate::types::match_type(
-                    &[DataType::Array],
-                    second,
-                    "union",
-                    |v| unsafe { (&mut *self.runtime).to_number(&v) },
-                    |v| unsafe { (&mut *self.runtime).to_string(&v) },
-                )?;
-                if let (JfValue::Array(mut a), JfValue::Array(b)) = (first, second) {
-                    a.extend(b);
-                    Ok(JfValue::Array(a))
-                } else {
-                    Ok(JfValue::Null)
-                }
+                Ok(JfValue::Array(out))
             }
             AstNode::NotExpression(inner) => {
                 let first = self.visit(inner, value)?;
