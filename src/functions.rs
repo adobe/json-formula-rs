@@ -557,8 +557,8 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
         "fromCodePoint".to_string(),
         simple(
             Box::new(|runtime, args, _data, _interp| {
-                let points = if let JfValue::Array(items) = &args[0] {
-                    items
+                let points = if let JfValue::Array(_) = &args[0] {
+                    flatten(&args[0])
                         .iter()
                         .map(|v| to_integer(runtime, v))
                         .collect::<Result<Vec<_>, _>>()?
@@ -615,7 +615,7 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
                 }
                 Ok(JfValue::Object(out))
             }),
-            sig!([DataType::ArrayArray]),
+            sig!([DataType::ArrayArray, DataType::ArrayString, DataType::ArrayNumber]),
         ),
     );
 
@@ -1766,9 +1766,7 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
                     if matches!(get_type(&v), DataType::Null) {
                         continue;
                     }
-                    let n = runtime.to_number(&v).map_err(|_| {
-                        JsonFormulaError::evaluation("stdevA() received non-numeric parameters".to_string())
-                    })?;
+                    let n = runtime.to_number(&v)?;
                     values.push(n);
                 }
                 if values.len() <= 1 {
@@ -1991,15 +1989,18 @@ pub fn builtin_functions() -> HashMap<String, FunctionEntry> {
         simple(
             Box::new(|runtime, args, _data, interp| {
                 let base_val = if args.len() > 1 {
-                    match &args[1] {
-                        JfValue::Array(items) => JfValue::Array(
-                            items
-                                .iter()
-                                .map(|v| to_integer(runtime, v).map(|n| JfValue::Number(n as f64)))
-                                .collect::<Result<Vec<_>, _>>()?,
-                        ),
-                        _ => JfValue::Number(to_integer(runtime, &args[1])? as f64),
+                    fn base_deep(runtime: &Runtime, v: &JfValue) -> Result<JfValue, JsonFormulaError> {
+                        match v {
+                            JfValue::Array(items) => Ok(JfValue::Array(
+                                items
+                                    .iter()
+                                    .map(|i| base_deep(runtime, i))
+                                    .collect::<Result<Vec<_>, _>>()?,
+                            )),
+                            _ => Ok(JfValue::Number(to_integer(runtime, v)? as f64)),
+                        }
                     }
+                    base_deep(runtime, &args[1])?
                 } else {
                     JfValue::Number(10.0)
                 };
@@ -3301,12 +3302,31 @@ fn to_number_base(
                 .push(format!("Failed to convert \"{}\" base \"{}\" to number", s, base));
             return Ok(JfValue::Null);
         }
-        let int_part = i64::from_str_radix(parts[0].trim_start_matches('+'), base as u32)
-            .map_err(|_| JsonFormulaError::evaluation("Invalid base".to_string()))?;
-        let mut result = int_part as f64;
+        // The integer part may be omitted (".01") or sign-only ("-.01"); the sign
+        // applies to the whole magnitude so the fractional part shares it.
+        let mut decimal = 0.0;
         if parts.len() == 2 {
-            let frac = i64::from_str_radix(parts[1], base as u32).unwrap_or(0);
-            result += frac as f64 * (base as f64).powi(-(parts[1].len() as i32));
+            decimal = match i64::from_str_radix(parts[1], base as u32) {
+                Ok(f) => f as f64 * (base as f64).powi(-(parts[1].len() as i32)),
+                Err(_) => f64::NAN,
+            };
+        }
+        let magnitude = parts[0].trim_start_matches(|c| c == '+' || c == '-');
+        let integer = if magnitude.is_empty() {
+            Some(0.0)
+        } else {
+            i64::from_str_radix(magnitude, base as u32).ok().map(|n| n as f64)
+        };
+        let sign = if parts[0].starts_with('-') { -1.0 } else { 1.0 };
+        let result = match integer {
+            Some(i) => sign * (i + decimal),
+            None => f64::NAN,
+        };
+        if result.is_nan() {
+            interp
+                .debug_mut()
+                .push(format!("Failed to convert \"{}\" base \"{}\" to number", s, base));
+            return Ok(JfValue::Null);
         }
         return Ok(JfValue::Number(result));
     }
